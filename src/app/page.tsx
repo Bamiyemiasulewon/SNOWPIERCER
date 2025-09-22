@@ -9,6 +9,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import WalletButton from '@/components/WalletButton';
 import Form from '@/components/Form';
 import ProgressDashboard from '@/components/ProgressDashboard';
+import NoSSR from '@/components/NoSSR';
 
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -70,27 +71,52 @@ export default function Home() {
   // Check Solana network congestion
   useEffect(() => {
     const checkNetworkStatus = async () => {
+      // Don't check if connection is not available
+      if (!connection) {
+        setNetworkStatus('error');
+        return;
+      }
+
       try {
         const start = Date.now();
-        await connection.getRecentBlockhash();
+        // Use getLatestBlockhash with a timeout to avoid hanging
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Request timeout')), 10000)
+        );
+        
+        await Promise.race([
+          connection.getLatestBlockhash('confirmed'),
+          timeoutPromise
+        ]);
+        
         const latency = Date.now() - start;
         
-        if (latency < 500) {
+        console.log(`Network latency: ${latency}ms`); // Debug log
+        
+        if (latency < 1000) {
           setNetworkStatus('good');
-        } else if (latency < 2000) {
+        } else if (latency < 3000) {
           setNetworkStatus('congested');
         } else {
           setNetworkStatus('error');
         }
-      } catch {
-        setNetworkStatus('error');
+      } catch (error: any) {
+        console.warn('Network status check failed:', error?.message || 'Unknown error');
+        // Don't set to error immediately on first failure - might be temporary
+        setNetworkStatus('congested');
       }
     };
 
-    checkNetworkStatus();
-    const interval = setInterval(checkNetworkStatus, 30000); // Check every 30s
+    // Initial check with delay to let connection establish
+    const initialTimeout = setTimeout(checkNetworkStatus, 2000);
+    
+    // Set up interval for periodic checks (less frequent to avoid rate limits)
+    const interval = setInterval(checkNetworkStatus, 60000); // Check every 60s
 
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(interval);
+    };
   }, [connection]);
 
   const calculateDelay = (config: FormData): number => {
@@ -357,7 +383,7 @@ export default function Home() {
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                   </svg>
                 </div>
-                <h1 className="text-3xl font-black bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent tracking-widest font-orbitron">
+                <h1 className="text-3xl font-black bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent tracking-widest font-mono uppercase">
                   SNOWPIERCER
                 </h1>
               </div>
@@ -381,27 +407,36 @@ export default function Home() {
               </div>
             </div>
             
-            <WalletButton />
+            <NoSSR fallback={<div className="w-32 h-12 bg-gray-700/50 animate-pulse rounded-xl" />}>
+              <WalletButton />
+            </NoSSR>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {!isRunning ? (
-          <Form
-            onStartBot={startBot}
-            onStopBot={stopBot}
-            isRunning={isRunning}
-          />
-        ) : (
-          <ProgressDashboard
-            isRunning={isRunning}
-            stats={stats}
-            tradeLogs={tradeLogs}
-            onStop={stopBot}
-          />
-        )}
+        <NoSSR fallback={
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <span className="ml-3 text-gray-600">Loading...</span>
+          </div>
+        }>
+          {!isRunning ? (
+            <Form
+              onStartBot={startBot}
+              onStopBot={stopBot}
+              isRunning={isRunning}
+            />
+          ) : (
+            <ProgressDashboard
+              isRunning={isRunning}
+              stats={stats}
+              tradeLogs={tradeLogs}
+              onStop={stopBot}
+            />
+          )}
+        </NoSSR>
       </main>
 
       {/* Toast Notifications */}

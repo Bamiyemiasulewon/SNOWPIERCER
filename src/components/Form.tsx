@@ -71,15 +71,28 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
     const fetchBalance = async () => {
       if (connected && publicKey && connection) {
         try {
-          const balance = await connection.getBalance(publicKey);
+          // Add timeout to prevent hanging requests
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Balance fetch timeout')), 10000)
+          );
+          
+          const balancePromise = connection.getBalance(publicKey);
+          const balance = await Promise.race([balancePromise, timeoutPromise]) as number;
+          
           setSolBalance(balance / LAMPORTS_PER_SOL);
-        } catch (error) {
-          console.error('Failed to fetch balance:', error);
+        } catch (error: any) {
+          console.warn('Failed to fetch balance:', error?.message || 'Unknown error');
+          // Set a default balance to prevent form blocking
+          setSolBalance(0);
         }
+      } else {
+        setSolBalance(0);
       }
     };
 
-    fetchBalance();
+    // Add delay to let connection establish
+    const timeout = setTimeout(fetchBalance, 1000);
+    return () => clearTimeout(timeout);
   }, [connected, publicKey, connection]);
 
   const validateForm = (): boolean => {
@@ -89,8 +102,11 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
       newErrors.wallet = 'Please connect your wallet first';
     }
 
-    if (solBalance < 0.1) {
-      newErrors.balance = 'Insufficient SOL balance (minimum 0.1 SOL required)';
+    // Only check balance if we successfully fetched it and user is connected
+    if (connected && solBalance === 0) {
+      newErrors.balance = 'Unable to fetch SOL balance. Please ensure you have sufficient SOL (minimum 0.1 SOL recommended)';
+    } else if (connected && solBalance > 0 && solBalance < 0.01) {
+      newErrors.balance = 'Low SOL balance. Minimum 0.01 SOL required for trading';
     }
 
     if (!formData.tokenAddress) {

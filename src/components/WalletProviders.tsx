@@ -25,8 +25,22 @@ export function WalletProviders({ children }: { children: React.ReactNode }) {
   // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'
   const network = WalletAdapterNetwork.Mainnet;
 
-  // You can also provide a custom RPC endpoint
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  // Use more reliable RPC endpoints
+  const endpoint = useMemo(() => {
+    // You can replace this with your preferred RPC provider
+    // For better reliability, consider using:
+    // - Alchemy: https://www.alchemy.com/solana
+    // - QuickNode: https://www.quicknode.com/chains/sol
+    // - Helius: https://www.helius.dev/
+    
+    const customEndpoint = process.env.NEXT_PUBLIC_SOLANA_RPC_URL;
+    if (customEndpoint) {
+      return customEndpoint;
+    }
+    
+    // Use Solana's official mainnet RPC as primary
+    return 'https://api.mainnet-beta.solana.com';
+  }, [network]);
 
   const wallets = useMemo(
     () => [

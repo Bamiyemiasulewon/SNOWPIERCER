@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { Copy, Check, Wallet, LogOut, ChevronDown } from 'lucide-react';
@@ -10,6 +10,12 @@ export default function WalletButton() {
   const { publicKey, connected, disconnect } = useWallet();
   const [copied, setCopied] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration errors by only rendering after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleCopyAddress = async () => {
     if (publicKey) {
@@ -29,6 +35,13 @@ export default function WalletButton() {
     setShowDropdown(false);
     toast.info('Wallet disconnected');
   };
+
+  // Don't render until mounted to prevent hydration errors
+  if (!mounted) {
+    return (
+      <div className="w-32 h-12 bg-gray-200 animate-pulse rounded-xl" />
+    );
+  }
 
   if (!connected || !publicKey) {
     return (
