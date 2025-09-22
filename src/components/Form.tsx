@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { toast } from 'react-toastify';
-import { Play, StopCircle, AlertCircle, TrendingUp } from 'lucide-react';
+import { Play, StopCircle, AlertCircle } from 'lucide-react';
 
 interface FormData {
   tokenAddress: string;
@@ -42,29 +42,29 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
     mode: 'bump',
   });
 
-  const [tokens, setTokens] = useState<Token[]>([]);
+  // const [tokens, setTokens] = useState<Token[]>([]);
   const [solBalance, setSolBalance] = useState<number>(0);
   const [isValidating, setIsValidating] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Fetch popular tokens from backend
-  useEffect(() => {
-    const fetchTokens = async () => {
-      try {
-        // Mock data for now - replace with actual API call
-        const mockTokens: Token[] = [
-          { address: 'So11111111111111111111111111111111111111112', name: 'Wrapped SOL', symbol: 'WSOL' },
-          { address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', name: 'USD Coin', symbol: 'USDC' },
-          { address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', name: 'Tether', symbol: 'USDT' },
-        ];
-        setTokens(mockTokens);
-      } catch (error) {
-        console.error('Failed to fetch tokens:', error);
-      }
-    };
+  // // Fetch popular tokens from backend
+  // useEffect(() => {
+  //   const fetchTokens = async () => {
+  //     try {
+  //       // Mock data for now - replace with actual API call
+  //       const mockTokens: Token[] = [
+  //         { address: 'So11111111111111111111111111111111111111112', name: 'Wrapped SOL', symbol: 'WSOL' },
+  //         { address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', name: 'USD Coin', symbol: 'USDC' },
+  //         { address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', name: 'Tether', symbol: 'USDT' },
+  //       ];
+  //       setTokens(mockTokens);
+  //     } catch (error) {
+  //       console.error('Failed to fetch tokens:', error);
+  //     }
+  //   };
 
-    fetchTokens();
-  }, []);
+  //   fetchTokens();
+  // }, []);
 
   // Fetch SOL balance
   useEffect(() => {
@@ -151,7 +151,7 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
           if (!accountInfo) {
             throw new Error('Token not found');
           }
-        } catch (error) {
+        } catch {
           toast.error('Invalid token address or token does not exist');
           setIsValidating(false);
           return;
@@ -168,7 +168,7 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
     }
   };
 
-  const handleInputChange = (field: keyof FormData, value: any) => {
+  const handleInputChange = (field: keyof FormData, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {

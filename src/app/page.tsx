@@ -51,7 +51,6 @@ export default function Home() {
   const { connection } = useConnection();
   
   const [isRunning, setIsRunning] = useState(false);
-  const [currentConfig, setCurrentConfig] = useState<FormData | null>(null);
   const [stats, setStats] = useState<ProgressStats>({
     tradesCompleted: 0,
     totalTrades: 0,
@@ -83,7 +82,7 @@ export default function Home() {
         } else {
           setNetworkStatus('error');
         }
-      } catch (error) {
+      } catch {
         setNetworkStatus('error');
       }
     };
@@ -156,7 +155,7 @@ export default function Home() {
       });
       
       // Wait for confirmation with timeout
-      const confirmation = await Promise.race([
+      await Promise.race([
         connection.confirmTransaction(txHash, 'confirmed'),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Transaction timeout')), 30000)
@@ -164,11 +163,11 @@ export default function Home() {
       ]);
       
       return { success: true, txHash };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Swap execution error:', error);
       return { 
         success: false, 
-        error: error.message || 'Unknown error' 
+        error: error instanceof Error ? error.message : 'Unknown error' 
       };
     }
   };
@@ -277,7 +276,6 @@ export default function Home() {
     }
     
     setIsRunning(true);
-    setCurrentConfig(config);
     setStats({
       tradesCompleted: 0,
       totalTrades: config.numberOfTrades,

@@ -18,7 +18,7 @@ export default function WalletButton() {
         setCopied(true);
         toast.success('Wallet address copied!');
         setTimeout(() => setCopied(false), 2000);
-      } catch (error) {
+      } catch {
         toast.error('Failed to copy address');
       }
     }
