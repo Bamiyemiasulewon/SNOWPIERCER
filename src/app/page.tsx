@@ -370,87 +370,102 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-slate-900 via-gray-900 to-slate-800 shadow-2xl border-b border-gray-700/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center gap-6">
-              {/* SNOWPIERCER Logo */}
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-cyan-300 rounded-lg flex items-center justify-center shadow-lg">
-                  <svg className="w-6 h-6 text-slate-900" fill="currentColor" viewBox="0 0 24 24">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      {/* Mobile-First Header */}
+      <header className="bg-gradient-to-r from-slate-900 via-gray-900 to-slate-800 shadow-xl border-b border-gray-700/30 sticky top-0 z-50 backdrop-blur-md">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="flex justify-between items-center h-16 sm:h-20">
+            {/* Mobile-Optimized Logo */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-400 to-cyan-300 rounded-lg flex items-center justify-center shadow-lg">
+                  <svg className="w-4 h-4 sm:w-6 sm:h-6 text-slate-900" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                   </svg>
                 </div>
-                <h1 className="text-3xl font-black bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent tracking-widest font-mono uppercase">
+                <h1 className="text-lg sm:text-2xl lg:text-3xl font-black bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent tracking-wide sm:tracking-widest font-mono uppercase">
                   SNOWPIERCER
                 </h1>
               </div>
               
-              {/* Network Status Badge */}
-              <div className={`px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase backdrop-blur-sm border ${
+              {/* Mobile Network Status Badge */}
+              <div className={`hidden sm:flex px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase backdrop-blur-sm border ${
                 networkStatus === 'good' 
-                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30 shadow-emerald-500/20' :
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' :
                 networkStatus === 'congested' 
-                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/30 shadow-amber-500/20' :
-                  'bg-red-500/20 text-red-300 border-red-500/30 shadow-red-500/20'
-              } shadow-lg`}>
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-2 h-2 rounded-full ${
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
+                  'bg-red-500/20 text-red-300 border-red-500/30'
+              } shadow-md`}>
+                <div className="flex items-center gap-1 sm:gap-1.5">
+                  <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
                     networkStatus === 'good' ? 'bg-emerald-400 animate-pulse' :
                     networkStatus === 'congested' ? 'bg-amber-400 animate-pulse' :
                     'bg-red-400 animate-pulse'
                   }`} />
-                  Network: {networkStatus}
+                  <span className="hidden sm:inline">Network:</span>
+                  <span className="capitalize">{networkStatus}</span>
                 </div>
               </div>
             </div>
             
-            <NoSSR fallback={<div className="w-32 h-12 bg-gray-700/50 animate-pulse rounded-xl" />}>
+            {/* Mobile Network Status Indicator */}
+            <div className={`sm:hidden w-3 h-3 rounded-full ${
+              networkStatus === 'good' ? 'bg-emerald-400' :
+              networkStatus === 'congested' ? 'bg-amber-400' :
+              'bg-red-400'
+            } animate-pulse mr-2`} />
+            
+            <NoSSR fallback={<div className="w-24 sm:w-32 h-10 sm:h-12 bg-gray-700/50 animate-pulse rounded-lg sm:rounded-xl" />}>
               <WalletButton />
             </NoSSR>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      {/* Mobile-First Main Content */}
+      <main className="container mx-auto py-4 sm:py-6 lg:py-8 px-3 sm:px-4 lg:px-6 max-w-6xl">
         <NoSSR fallback={
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-            <span className="ml-3 text-gray-600">Loading...</span>
+          <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+            <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-2 sm:border-4 border-blue-500 border-t-transparent"></div>
+            <span className="text-sm sm:text-base text-gray-600 dark:text-gray-400 font-medium">Loading VolumeBot...</span>
           </div>
         }>
           {!isRunning ? (
-            <Form
-              onStartBot={startBot}
-              onStopBot={stopBot}
-              isRunning={isRunning}
-            />
+            <div className="w-full">
+              <Form
+                onStartBot={startBot}
+                onStopBot={stopBot}
+                isRunning={isRunning}
+              />
+            </div>
           ) : (
-            <ProgressDashboard
-              isRunning={isRunning}
-              stats={stats}
-              tradeLogs={tradeLogs}
-              onStop={stopBot}
-            />
+            <div className="w-full">
+              <ProgressDashboard
+                isRunning={isRunning}
+                stats={stats}
+                tradeLogs={tradeLogs}
+                onStop={stopBot}
+              />
+            </div>
           )}
         </NoSSR>
       </main>
 
-      {/* Toast Notifications */}
+      {/* Mobile-Optimized Toast Notifications */}
       <ToastContainer
-        position="bottom-right"
-        autoClose={5000}
+        position="bottom-center"
+        autoClose={4000}
         hideProgressBar={false}
         newestOnTop
         closeOnClick
         rtl={false}
-        pauseOnFocusLoss
+        pauseOnFocusLoss={false}
         draggable
         pauseOnHover
         theme="colored"
+        toastClassName="!text-sm !rounded-xl !shadow-xl"
+        bodyClassName="!p-3"
+        className="!bottom-4 !left-4 !right-4 !top-auto sm:!bottom-8 sm:!right-8 sm:!left-auto sm:!top-auto sm:!w-96"
       />
     </div>
   );
