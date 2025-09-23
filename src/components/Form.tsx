@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { toast } from 'react-toastify';
@@ -55,11 +55,6 @@ interface FormData {
   trendingIntensity: string;
 }
 
-interface Token {
-  address: string;
-  name: string;
-  symbol: string;
-}
 
 interface FormProps {
   onStartBot: (formData: FormData) => void;
@@ -97,11 +92,36 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
   useEffect(() => {
     const fetchTrendingData = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/trending/platforms');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        const response = await fetch('http://localhost:8000/api/trending/platforms', {
+          method: 'GET',
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        clearTimeout(timeoutId);
+        
         if (response.ok) {
           const data = await response.json();
           
-          const platformData: Platform[] = data.platforms.map((p: any) => ({
+          interface ApiPlatform {
+            id: string;
+            name: string;
+            min_volume_24h: number;
+            difficulty: string;
+          }
+          
+          interface ApiIntensity {
+            id: string;
+            name: string;
+            description: string;
+          }
+          
+          const platformData: Platform[] = data.platforms.map((p: ApiPlatform) => ({
             id: p.id,
             name: p.name,
             minVolume: p.min_volume_24h,
@@ -109,7 +129,7 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
             selected: false
           }));
           
-          const intensityData: Intensity[] = data.intensities.map((i: any) => ({
+          const intensityData: Intensity[] = data.intensities.map((i: ApiIntensity) => ({
             id: i.id,
             name: i.name,
             description: i.description,
@@ -118,10 +138,44 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
           
           setPlatforms(platformData);
           setIntensities(intensityData);
+        } else {
+          console.error('API response not ok:', response.status, response.statusText);
+          // Use fallback data
+          setFallbackTrendingData();
         }
       } catch (error) {
         console.error('Failed to fetch trending data:', error);
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            console.error('Request timed out');
+          } else {
+            console.error('Network error:', error.message);
+          }
+        }
+        // Use fallback data when backend is not available
+        setFallbackTrendingData();
       }
+    };
+
+    const setFallbackTrendingData = () => {
+      // Fallback data when backend is not available
+      const fallbackPlatforms: Platform[] = [
+        { id: 'dexscreener', name: 'DEXScreener', minVolume: 50000, difficulty: 'high' },
+        { id: 'dextools', name: 'DEXTools', minVolume: 25000, difficulty: 'medium' },
+        { id: 'jupiter', name: 'Jupiter Terminal', minVolume: 15000, difficulty: 'low' },
+        { id: 'birdeye', name: 'Birdeye', minVolume: 35000, difficulty: 'medium' },
+        { id: 'solscan', name: 'Solscan', minVolume: 10000, difficulty: 'low' },
+      ];
+      
+      const fallbackIntensities: Intensity[] = [
+        { id: 'organic', name: 'Organic', description: 'Natural, long-term trending approach', multiplier: 1.0 },
+        { id: 'aggressive', name: 'Aggressive', description: 'Fast, high-impact trending', multiplier: 1.2 },
+        { id: 'stealth', name: 'Stealth', description: 'Undetectable, gradual approach', multiplier: 0.8 },
+        { id: 'viral', name: 'Viral', description: 'Maximum visibility and impact', multiplier: 1.5 },
+      ];
+      
+      setPlatforms(fallbackPlatforms);
+      setIntensities(fallbackIntensities);
     };
 
     fetchTrendingData();
@@ -141,8 +195,8 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
           const balance = await Promise.race([balancePromise, timeoutPromise]) as number;
           
           setSolBalance(balance / LAMPORTS_PER_SOL);
-        } catch (error: any) {
-          console.warn('Failed to fetch balance:', error?.message || 'Unknown error');
+        } catch (error) {
+          console.warn('Failed to fetch balance:', error instanceof Error ? error.message : 'Unknown error');
           // Set a default balance to prevent form blocking
           setSolBalance(0);
         }
@@ -245,7 +299,7 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
     }
   };
 
-  const handleInputChange = (field: keyof FormData, value: string | number) => {
+  const handleInputChange = (field: keyof FormData, value: string | number | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
@@ -268,7 +322,30 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
     }
   };
 
-  const calculateMultiPlatformCosts = async () => {
+  const setMockCostEstimate = useCallback(() => {
+    // Mock estimate for development when backend is not available
+    const mockEstimate: MultiPlatformCostResponse = {
+      platform_estimates: formData.selectedPlatforms.map(platform => ({
+        platform: platform,
+        volumeRequired: platforms.find(p => p.id === platform)?.minVolume || 25000,
+        transactionsRequired: 100,
+        estimatedCostSOL: 0.5 + Math.random() * 2,
+        successProbability: 0.75 + Math.random() * 0.2,
+        timeToTrend: '4-6 hours',
+        difficulty: platforms.find(p => p.id === platform)?.difficulty || 'medium'
+      })),
+      total_cost_sol: formData.selectedPlatforms.length * (0.5 + Math.random() * 2),
+      total_volume_required: Math.max(...formData.selectedPlatforms.map(platform => 
+        platforms.find(p => p.id === platform)?.minVolume || 25000)),
+      total_transactions: 100,
+      estimated_duration: '4-8 hours',
+      overall_success_probability: 0.8,
+      recommendations: '💰 Mock data - Backend not connected • Select platforms that match your budget • Consider starting with easier platforms first'
+    };
+    setCostEstimate(mockEstimate);
+  }, [formData.selectedPlatforms, platforms]);
+
+  const calculateMultiPlatformCosts = useCallback(async () => {
     if (formData.selectedPlatforms.length === 0 || !formData.trendingIntensity) {
       setCostEstimate(null);
       return;
@@ -277,8 +354,12 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
     setIsCalculatingCosts(true);
     
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      
       const response = await fetch('http://localhost:8000/api/trending/multi-platform-costs', {
         method: 'POST',
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -288,20 +369,27 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
         }),
       });
       
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
         const data: MultiPlatformCostResponse = await response.json();
         setCostEstimate(data);
       } else {
-        console.error('Failed to calculate costs');
-        setCostEstimate(null);
+        console.error('Failed to calculate costs:', response.status, response.statusText);
+        // Set a mock estimate when API is not available
+        setMockCostEstimate();
       }
     } catch (error) {
       console.error('Error calculating costs:', error);
-      setCostEstimate(null);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error('Cost calculation request timed out');
+      }
+      // Set a mock estimate when API is not available
+      setMockCostEstimate();
     } finally {
       setIsCalculatingCosts(false);
     }
-  };
+  }, [formData.selectedPlatforms, formData.trendingIntensity, setMockCostEstimate]);
   
   // Trigger cost calculation when platforms or intensity changes
   useEffect(() => {
@@ -309,7 +397,7 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
       const timeout = setTimeout(calculateMultiPlatformCosts, 500);
       return () => clearTimeout(timeout);
     }
-  }, [formData.selectedPlatforms, formData.trendingIntensity, formData.mode]);
+  }, [formData.selectedPlatforms, formData.trendingIntensity, formData.mode, calculateMultiPlatformCosts]);
   
   const togglePlatform = (platformId: string) => {
     setFormData(prev => {

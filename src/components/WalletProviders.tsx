@@ -2,7 +2,6 @@
 
 import { useMemo } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { 
   PhantomWalletAdapter,
@@ -16,15 +15,11 @@ import {
   BitgetWalletAdapter,
   TokenPocketWalletAdapter,
 } from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl } from '@solana/web3.js';
 
 // Import wallet adapter CSS
 import '@solana/wallet-adapter-react-ui/styles.css';
 
 export function WalletProviders({ children }: { children: React.ReactNode }) {
-  // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'
-  const network = WalletAdapterNetwork.Mainnet;
-
   // Use more reliable RPC endpoints
   const endpoint = useMemo(() => {
     // You can replace this with your preferred RPC provider
@@ -40,7 +35,7 @@ export function WalletProviders({ children }: { children: React.ReactNode }) {
     
     // Use Solana's official mainnet RPC as primary
     return 'https://api.mainnet-beta.solana.com';
-  }, [network]);
+  }, []);
 
   const wallets = useMemo(
     () => [

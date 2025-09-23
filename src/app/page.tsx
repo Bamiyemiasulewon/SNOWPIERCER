@@ -19,9 +19,12 @@ interface FormData {
   duration: number;
   tradeSize: number;
   slippageTolerance: number;
-  mode: 'boost' | 'bump' | 'advanced';
+  mode: 'boost' | 'bump' | 'advanced' | 'trending';
   customDelayMin?: number;
   customDelayMax?: number;
+  // Trending-specific fields
+  selectedPlatforms?: string[];
+  trendingIntensity?: string;
 }
 
 interface ProgressStats {
@@ -100,8 +103,8 @@ export default function Home() {
         } else {
           setNetworkStatus('error');
         }
-      } catch (error: any) {
-        console.warn('Network status check failed:', error?.message || 'Unknown error');
+      } catch (error) {
+        console.warn('Network status check failed:', error instanceof Error ? error.message : 'Unknown error');
         // Don't set to error immediately on first failure - might be temporary
         setNetworkStatus('congested');
       }
@@ -463,8 +466,7 @@ export default function Home() {
         draggable
         pauseOnHover
         theme="colored"
-        toastClassName="!text-sm !rounded-xl !shadow-xl"
-        bodyClassName="!p-3"
+        toastClassName="!text-sm !rounded-xl !shadow-xl !p-3"
         className="!bottom-4 !left-4 !right-4 !top-auto sm:!bottom-8 sm:!right-8 sm:!left-auto sm:!top-auto sm:!w-96"
       />
     </div>
