@@ -427,9 +427,9 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
+    <div className="w-full max-w-5xl mx-auto px-2 sm:px-4">
       {/* Mobile-First Form Container */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-6 lg:p-8">
+      <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl border border-gray-200 dark:border-gray-700 p-3 sm:p-6 lg:p-8 mb-4 sm:mb-6">
         {/* Header */}
         <div className="mb-6 sm:mb-8 text-center sm:text-left">
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white mb-2">
@@ -459,7 +459,7 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 lg:space-y-8">
           {/* Mobile-Optimized Token Address */}
           <div className="space-y-2">
             <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300">
@@ -668,38 +668,46 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
                 <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                   Select Trending Platforms
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4">
+                <div className="grid grid-cols-1 gap-2 sm:gap-3 mb-4">
                   {platforms.map((platform) => (
                     <button
                       key={platform.id}
                       type="button"
                       onClick={() => togglePlatform(platform.id)}
-                      className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                      className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-left min-h-[80px] sm:min-h-[90px] ${
                         formData.selectedPlatforms.includes(platform.id)
-                          ? 'bg-blue-600 text-white border-blue-500 shadow-lg'
-                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
-                      } touch-manipulation`}
+                          ? 'bg-blue-600 text-white border-blue-500 shadow-lg transform scale-[1.02]'
+                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:scale-[1.01]'
+                      } touch-manipulation active:scale-[0.98]`}
                       disabled={isRunning}
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium text-sm sm:text-base">{platform.name}</h4>
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                        <div className="flex items-start gap-2">
+                          {formData.selectedPlatforms.includes(platform.id) && (
+                            <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
+                              <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
+                            </div>
+                          )}
+                          <div>
+                            <h4 className="font-semibold text-base sm:text-lg">{platform.name}</h4>
+                            <p className="text-xs sm:text-sm opacity-75 mt-1">
+                              Min: ${platform.minVolume.toLocaleString()} volume
+                            </p>
+                          </div>
+                        </div>
+                        <span className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-semibold flex-shrink-0 ${
                           formData.selectedPlatforms.includes(platform.id) 
                             ? 'bg-white/20 text-white' 
                             : `bg-gray-100 dark:bg-gray-600 ${getDifficultyColor(platform.difficulty)}`
                         }`}>
-                          {platform.difficulty}
+                          {platform.difficulty.toUpperCase()}
                         </span>
                       </div>
-                      <div className="text-xs sm:text-sm opacity-90">
-                        Min: ${platform.minVolume.toLocaleString()} volume
-                      </div>
                       {formData.selectedPlatforms.includes(platform.id) && (
-                        <div className="mt-2 flex items-center gap-2">
-                          <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          </div>
-                          <span className="text-xs font-medium">Selected</span>
+                        <div className="mt-2 pt-2 border-t border-white/20">
+                          <span className="text-xs font-medium flex items-center gap-1">
+                            ✓ Selected for trending
+                          </span>
                         </div>
                       )}
                     </button>
@@ -720,40 +728,39 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
                 <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                   Trending Intensity
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                   {intensities.map((intensity) => (
                     <button
                       key={intensity.id}
                       type="button"
                       onClick={() => handleInputChange('trendingIntensity', intensity.id)}
-                      className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                      className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-center min-h-[100px] sm:min-h-[110px] ${
                         formData.trendingIntensity === intensity.id
-                          ? 'bg-green-600 text-white border-green-500 shadow-lg'
-                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
-                      } touch-manipulation`}
+                          ? 'bg-green-600 text-white border-green-500 shadow-lg transform scale-[1.02]'
+                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:scale-[1.01]'
+                      } touch-manipulation active:scale-[0.98]`}
                       disabled={isRunning}
                     >
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium text-sm sm:text-base capitalize">{intensity.name}</h4>
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                          formData.trendingIntensity === intensity.id 
-                            ? 'bg-white/20 text-white' 
-                            : 'bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
-                        }`}>
-                          {intensity.multiplier}x
-                        </span>
-                      </div>
-                      <div className="text-xs sm:text-sm opacity-90">
-                        {intensity.description}
-                      </div>
-                      {formData.trendingIntensity === intensity.id && (
-                        <div className="mt-2 flex items-center gap-2">
+                      <div className="flex flex-col items-center gap-2">
+                        {formData.trendingIntensity === intensity.id && (
                           <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center">
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                           </div>
-                          <span className="text-xs font-medium">Selected</span>
+                        )}
+                        <div className="text-center">
+                          <h4 className="font-semibold text-sm sm:text-base capitalize mb-1">{intensity.name}</h4>
+                          <span className={`text-xs sm:text-sm px-2 py-1 rounded-full font-semibold ${
+                            formData.trendingIntensity === intensity.id 
+                              ? 'bg-white/20 text-white' 
+                              : 'bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
+                          }`}>
+                            {intensity.multiplier}x
+                          </span>
                         </div>
-                      )}
+                        <p className="text-xs sm:text-sm opacity-75 leading-tight">
+                          {intensity.description}
+                        </p>
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -774,48 +781,71 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
                   ) : costEstimate ? (
                     <div className="space-y-4">
                       {/* Total Cost Summary */}
-                      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                          <div>
-                            <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                      <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                          <div className="text-center p-3 sm:p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg">
+                            <div className="text-2xl sm:text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-1">
                               {costEstimate.total_cost_sol.toFixed(3)} SOL
                             </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">Total Cost</div>
+                            <div className="text-sm sm:text-base font-medium text-gray-600 dark:text-gray-400">Total Cost</div>
                           </div>
-                          <div>
-                            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                          <div className="text-center p-3 sm:p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                            <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
                               {(costEstimate.overall_success_probability * 100).toFixed(0)}%
                             </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">Success Rate</div>
+                            <div className="text-sm sm:text-base font-medium text-gray-600 dark:text-gray-400">Success Rate</div>
                           </div>
-                          <div>
-                            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                          <div className="text-center p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                            <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
                               {costEstimate.estimated_duration}
                             </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">Duration</div>
+                            <div className="text-sm sm:text-base font-medium text-gray-600 dark:text-gray-400">Duration</div>
                           </div>
                         </div>
                       </div>
                       
                       {/* Per-Platform Breakdown */}
-                      <div className="space-y-3">
-                        <h4 className="font-medium text-gray-800 dark:text-gray-200">Platform Breakdown:</h4>
+                      <div className="space-y-3 sm:space-y-4">
+                        <h4 className="font-semibold text-base sm:text-lg text-gray-800 dark:text-gray-200">💎 Platform Breakdown</h4>
                         {costEstimate.platform_estimates.map((estimate, index) => (
-                          <div key={index} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-                            <div className="flex justify-between items-start mb-2">
-                              <div className="font-medium text-gray-800 dark:text-gray-200 capitalize">
-                                {estimate.platform}
+                          <div key={index} className="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-shadow duration-200">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4 mb-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+                                <h5 className="font-bold text-lg sm:text-xl text-gray-800 dark:text-gray-200 capitalize">
+                                  {estimate.platform}
+                                </h5>
                               </div>
-                              <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
-                                {estimate.estimatedCostSOL.toFixed(3)} SOL
+                              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 px-3 py-2 rounded-lg">
+                                <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                                  {estimate.estimatedCostSOL.toFixed(3)} SOL
+                                </span>
                               </div>
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-gray-600 dark:text-gray-400">
-                              <div>Volume: ${estimate.volumeRequired.toLocaleString()}</div>
-                              <div>Success: {(estimate.successProbability * 100).toFixed(0)}%</div>
-                              <div>Time: {estimate.timeToTrend}</div>
-                              <div className={getDifficultyColor(estimate.difficulty)}>
-                                {estimate.difficulty} difficulty
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-sm">
+                              <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg text-center">
+                                <div className="font-semibold text-gray-800 dark:text-gray-200">
+                                  ${estimate.volumeRequired.toLocaleString()}
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">Volume</div>
+                              </div>
+                              <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg text-center">
+                                <div className="font-semibold text-green-600 dark:text-green-400">
+                                  {(estimate.successProbability * 100).toFixed(0)}%
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">Success</div>
+                              </div>
+                              <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg text-center">
+                                <div className="font-semibold text-blue-600 dark:text-blue-400">
+                                  {estimate.timeToTrend}
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">Time</div>
+                              </div>
+                              <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg text-center">
+                                <div className={`font-semibold ${getDifficultyColor(estimate.difficulty)}`}>
+                                  {estimate.difficulty.toUpperCase()}
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">Difficulty</div>
                               </div>
                             </div>
                           </div>
@@ -881,35 +911,37 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
           )}
 
           {/* Mobile-Optimized Submit Button */}
-          <div className="pt-4 sm:pt-6">
-            {!isRunning ? (
-              <button
-                type="submit"
-                disabled={isValidating || !connected}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-4 sm:py-5 px-6 rounded-lg sm:rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl disabled:shadow-none flex items-center justify-center gap-3 text-base sm:text-lg touch-manipulation"
-              >
-                {isValidating ? (
-                  <>
-                    <div className="w-5 h-5 sm:w-6 sm:h-6 border-3 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Validating Configuration...</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="h-5 w-5 sm:h-6 sm:w-6" />
-                    <span>Start Volume Bot</span>
-                  </>
-                )}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={onStopBot}
-                className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-4 sm:py-5 px-6 rounded-lg sm:rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3 text-base sm:text-lg touch-manipulation"
-              >
-                <StopCircle className="h-5 w-5 sm:h-6 sm:w-6" />
-                <span>Stop Volume Bot</span>
-              </button>
-            )}
+          <div className="pt-6 sm:pt-8">
+            <div className="sticky bottom-4 sm:bottom-0 sm:relative bg-white dark:bg-gray-800 sm:bg-transparent sm:dark:bg-transparent p-4 sm:p-0 -mx-3 sm:mx-0 rounded-t-xl sm:rounded-none border-t sm:border-t-0 border-gray-200 dark:border-gray-700">
+              {!isRunning ? (
+                <button
+                  type="submit"
+                  disabled={isValidating || !connected}
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-4 sm:py-5 px-6 rounded-xl sm:rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:shadow-none flex items-center justify-center gap-3 text-base sm:text-lg touch-manipulation transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none"
+                >
+                  {isValidating ? (
+                    <>
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 border-3 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Validating Configuration...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="h-5 w-5 sm:h-6 sm:w-6" />
+                      <span className="font-bold">Start Volume Bot</span>
+                    </>
+                  )}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onStopBot}
+                  className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-4 sm:py-5 px-6 rounded-xl sm:rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-3 text-base sm:text-lg touch-manipulation transform hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <StopCircle className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <span className="font-bold">Stop Volume Bot</span>
+                </button>
+              )}
+            </div>
           </div>
         </form>
       </div>

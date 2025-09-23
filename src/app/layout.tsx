@@ -12,9 +12,33 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "VolumeBot - Solana Volume Trading Bot",
-  description: "Professional Solana volume trading bot with advanced features",
+  title: "SNOWPIERCER - Solana Volume Trading Bot",
+  description: "Professional multi-platform Solana volume trading bot with trending capabilities and mobile-first design",
+  manifest: '/manifest.json',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'SNOWPIERCER',
+  },
 };
+
+export function generateViewport() {
+  return {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: 'cover',
+    themeColor: [
+      { media: '(prefers-color-scheme: light)', color: '#3b82f6' },
+      { media: '(prefers-color-scheme: dark)', color: '#1e40af' },
+    ],
+  }
+}
 
 export default function RootLayout({
   children,

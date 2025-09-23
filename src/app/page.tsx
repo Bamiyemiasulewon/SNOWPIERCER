@@ -426,7 +426,7 @@ export default function Home() {
       </header>
 
       {/* Mobile-First Main Content */}
-      <main className="container mx-auto py-4 sm:py-6 lg:py-8 px-3 sm:px-4 lg:px-6 max-w-6xl">
+      <main className="container mx-auto py-2 sm:py-4 lg:py-6 px-2 sm:px-4 lg:px-6 max-w-7xl min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] pb-20 sm:pb-8">
         <NoSSR fallback={
           <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
             <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-2 sm:border-4 border-blue-500 border-t-transparent"></div>
