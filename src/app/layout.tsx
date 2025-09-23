@@ -26,13 +26,15 @@ export const metadata: Metadata = {
   },
 };
 
+// UPDATED FOR MOBILE: Enhanced viewport configuration for all mobile devices
 export function generateViewport() {
   return {
     width: 'device-width',
     initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
+    maximumScale: 5, // Allow zoom for accessibility
+    userScalable: true, // Enable zoom for accessibility
     viewportFit: 'cover',
+    interactiveWidget: 'resizes-content', // Handle virtual keyboards
     themeColor: [
       { media: '(prefers-color-scheme: light)', color: '#3b82f6' },
       { media: '(prefers-color-scheme: dark)', color: '#1e40af' },

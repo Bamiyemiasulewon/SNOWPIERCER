@@ -1,7 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { TrendingUp, DollarSign, Activity, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { TrendingUp, DollarSign, Activity, Clock, AlertTriangle, CheckCircle, BarChart3, PieChart } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, PieChart as RechartsPieChart, Cell, BarChart, Bar, Tooltip } from 'recharts';
+import dynamic from 'next/dynamic';
+
+// UPDATED FOR MOBILE: Dynamic chart imports to prevent SSR issues
+const DynamicLineChart = dynamic(() => import('recharts').then(mod => mod.LineChart), { ssr: false });
+const DynamicPieChart = dynamic(() => import('recharts').then(mod => mod.PieChart), { ssr: false });
 
 interface ProgressStats {
   tradesCompleted: number;
@@ -37,14 +43,47 @@ export default function ProgressDashboard({
   onStop 
 }: ProgressDashboardProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [viewMode, setViewMode] = useState<'overview' | 'charts' | 'logs'>('overview');
+  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
 
+  // UPDATED FOR MOBILE: Handle orientation changes and time updates
   useEffect(() => {
-    const interval = setInterval(() => {
+    const handleOrientationChange = () => {
+      setOrientation(window.innerHeight > window.innerWidth ? 'portrait' : 'landscape');
+    };
+
+    const timeInterval = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
 
-    return () => clearInterval(interval);
+    handleOrientationChange();
+    window.addEventListener('orientationchange', handleOrientationChange);
+    window.addEventListener('resize', handleOrientationChange);
+
+    return () => {
+      clearInterval(timeInterval);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+      window.removeEventListener('resize', handleOrientationChange);
+    };
   }, []);
+
+  // UPDATED FOR MOBILE: Optimized chart data with reduced points for mobile
+  const chartData = useMemo(() => {
+    const maxPoints = orientation === 'portrait' ? 10 : 20; // Fewer points on mobile
+    const recent = tradeLogs.slice(-maxPoints).map((log, index) => ({
+      time: index + 1,
+      volume: log.amount * 100, // Mock volume calculation
+      success: log.status === 'success' ? 1 : 0,
+    }));
+    return recent;
+  }, [tradeLogs, orientation]);
+
+  // UPDATED FOR MOBILE: Success rate pie chart data
+  const pieData = useMemo(() => [
+    { name: 'Success', value: stats.successfulTrades, color: '#10b981' },
+    { name: 'Failed', value: stats.failedTrades, color: '#ef4444' },
+    { name: 'Pending', value: stats.totalTrades - stats.tradesCompleted, color: '#6b7280' },
+  ], [stats]);
 
   const progressPercentage = (stats.tradesCompleted / stats.totalTrades) * 100;
   const successRate = stats.tradesCompleted > 0 
@@ -101,15 +140,15 @@ export default function ProgressDashboard({
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-4 sm:space-y-6">
-      {/* Mobile-First Status Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-6 lg:p-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white">
+    <div className="w-full max-w-6xl mx-auto px-mobile-xs mobile-m:px-mobile-sm md:px-mobile-md space-y-mobile-md md:space-y-6">
+      {/* UPDATED FOR MOBILE: Mobile-First Status Header */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-mobile-sm mobile-m:p-mobile-md md:p-6 lg:p-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-mobile-sm md:gap-6 mb-mobile-md md:mb-6">
+          <div className="flex flex-col md:flex-row md:items-center gap-mobile-sm md:gap-4">
+            <h2 className="text-mobile-xl mobile-m:text-mobile-2xl md:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white">
               Volume Bot Progress
             </h2>
-            <div className={`self-start sm:self-auto px-3 py-2 sm:py-1 rounded-full text-sm sm:text-xs font-bold flex items-center gap-2 sm:gap-1 ${getStatusColor(stats.currentStatus)} shadow-sm`}>
+            <div className={`self-start md:self-auto px-mobile-sm py-2 md:py-1 rounded-full text-mobile-sm md:text-xs font-bold flex items-center gap-2 md:gap-1 ${getStatusColor(stats.currentStatus)} shadow-sm`}>
               {getStatusIcon(stats.currentStatus)}
               <span className="uppercase tracking-wide">{stats.currentStatus}</span>
             </div>
@@ -117,11 +156,30 @@ export default function ProgressDashboard({
           {isRunning && (
             <button
               onClick={onStop}
-              className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white px-6 py-3 sm:px-4 sm:py-2 rounded-lg font-medium transition-colors duration-200 shadow-lg hover:shadow-xl touch-manipulation"
+              className="w-full md:w-auto min-h-touch bg-red-600 hover:bg-red-700 text-white px-6 py-3 md:px-4 md:py-2 rounded-lg font-medium transition-colors duration-200 shadow-lg hover:shadow-xl touch-manipulation text-mobile-base"
             >
               Stop Bot
             </button>
           )}
+        </div>
+
+        {/* UPDATED FOR MOBILE: Mobile view mode selector */}
+        <div className="md:hidden mb-mobile-md">
+          <div className="flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden">
+            {(['overview', 'charts', 'logs'] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`flex-1 px-mobile-sm py-2 text-mobile-sm font-medium capitalize transition-colors duration-200 ${
+                  viewMode === mode
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                } touch-manipulation`}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Mobile-Optimized Progress Bar */}

@@ -427,31 +427,31 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-2 sm:px-4">
-      {/* Mobile-First Form Container */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl border border-gray-200 dark:border-gray-700 p-3 sm:p-6 lg:p-8 mb-4 sm:mb-6">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8 text-center sm:text-left">
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white mb-2">
+    <div className="w-full max-w-5xl mx-auto px-mobile-xs mobile-m:px-mobile-sm md:px-mobile-md">
+      {/* UPDATED FOR MOBILE: Mobile-First Form Container */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl shadow-lg md:shadow-xl border border-gray-200 dark:border-gray-700 p-mobile-sm mobile-m:p-mobile-md md:p-6 lg:p-8 mb-mobile-sm md:mb-6">
+        {/* UPDATED FOR MOBILE: Responsive header */}
+        <div className="mb-mobile-md md:mb-8 text-center md:text-left">
+          <h2 className="text-mobile-xl mobile-m:text-mobile-2xl md:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white mb-2">
             Volume Bot Configuration
           </h2>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+          <p className="text-mobile-sm mobile-m:text-mobile-base md:text-base text-gray-600 dark:text-gray-400">
             Configure your Solana token volume boosting parameters
           </p>
         </div>
 
-        {/* Mobile-Optimized Wallet Status */}
-        <div className="mb-6 sm:mb-8 p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
-              <span className="text-sm sm:text-base font-medium text-gray-700 dark:text-gray-200">
+        {/* UPDATED FOR MOBILE: Wallet Status */}
+        <div className="mb-mobile-md md:mb-8 p-mobile-sm mobile-m:p-mobile-md bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-lg md:rounded-xl border border-gray-200 dark:border-gray-600">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-mobile-sm">
+            <div className="flex items-center gap-mobile-sm">
+              <div className={`w-3 h-3 mobile-m:w-4 mobile-m:h-4 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
+              <span className="text-mobile-sm mobile-m:text-mobile-base font-medium text-gray-700 dark:text-gray-200">
                 {connected ? 'Wallet Connected' : 'Wallet Not Connected'}
               </span>
             </div>
             {connected && (
-              <div className="bg-white dark:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600">
-                <span className="text-xs sm:text-sm font-mono text-gray-600 dark:text-gray-400">
+              <div className="bg-white dark:bg-gray-800 px-mobile-sm py-1.5 rounded-lg border border-gray-200 dark:border-gray-600">
+                <span className="text-mobile-xs mobile-m:text-mobile-sm font-mono text-gray-600 dark:text-gray-400">
                   Balance: <span className="font-bold text-blue-600 dark:text-blue-400">{solBalance.toFixed(4)} SOL</span>
                 </span>
               </div>
@@ -459,10 +459,10 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 lg:space-y-8">
-          {/* Mobile-Optimized Token Address */}
-          <div className="space-y-2">
-            <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300">
+        <form onSubmit={handleSubmit} className="space-y-mobile-md md:space-y-6 lg:space-y-8">
+          {/* UPDATED FOR MOBILE: Token Address Input */}
+          <div className="space-y-mobile-sm">
+            <label className="block text-mobile-sm mobile-m:text-mobile-base font-medium text-gray-700 dark:text-gray-300">
               Token Address (SPL Token Mint)
             </label>
             <input
@@ -470,13 +470,13 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
               value={formData.tokenAddress}
               onChange={(e) => handleInputChange('tokenAddress', e.target.value)}
               placeholder="Enter Solana token address..."
-              className="w-full px-4 py-3 sm:py-4 text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+              className="w-full min-h-touch px-mobile-sm mobile-m:px-4 py-3 mobile-m:py-4 text-mobile-base mobile-m:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 touch-manipulation"
               disabled={isRunning}
             />
             {errors.tokenAddress && (
-              <div className="flex items-center gap-2 mt-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg border-l-4 border-red-400">
+              <div className="flex items-center gap-2 mt-2 p-mobile-sm bg-red-50 dark:bg-red-900/20 rounded-lg border-l-4 border-red-400">
                 <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
-                <p className="text-sm text-red-600 dark:text-red-400">{errors.tokenAddress}</p>
+                <p className="text-mobile-sm text-red-600 dark:text-red-400">{errors.tokenAddress}</p>
               </div>
             )}
           </div>

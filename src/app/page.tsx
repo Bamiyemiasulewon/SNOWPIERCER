@@ -1,15 +1,18 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { Transaction, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
+import dynamic from 'next/dynamic';
 
-import WalletButton from '@/components/WalletButton';
 import Form from '@/components/Form';
 import ProgressDashboard from '@/components/ProgressDashboard';
 import NoSSR from '@/components/NoSSR';
+// UPDATED FOR MOBILE: Dynamic imports for better performance
+const MobileHeader = dynamic(() => import('@/components/MobileHeader'), { ssr: false });
+const TrendingModal = dynamic(() => import('@/components/TrendingModal'), { ssr: false });
 
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -67,60 +70,116 @@ export default function Home() {
   const [tradeLogs, setTradeLogs] = useState<TradeLog[]>([]);
   const [networkStatus, setNetworkStatus] = useState<'good' | 'congested' | 'error'>('good');
   
+  // UPDATED FOR MOBILE: Mobile-specific state management
+  const [isMobile, setIsMobile] = useState(false);
+  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
+  const [connectionQuality, setConnectionQuality] = useState<'2g' | '3g' | '4g' | 'wifi'>('wifi');
+  
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const tradeCountRef = useRef(0);
   const startTimeRef = useRef<number>(0);
 
-  // Check Solana network congestion
+  // UPDATED FOR MOBILE: Detect mobile device and orientation
   useEffect(() => {
-    const checkNetworkStatus = async () => {
-      // Don't check if connection is not available
-      if (!connection) {
-        setNetworkStatus('error');
-        return;
-      }
-
-      try {
-        const start = Date.now();
-        // Use getLatestBlockhash with a timeout to avoid hanging
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Request timeout')), 10000)
-        );
-        
-        await Promise.race([
-          connection.getLatestBlockhash('confirmed'),
-          timeoutPromise
-        ]);
-        
-        const latency = Date.now() - start;
-        
-        console.log(`Network latency: ${latency}ms`); // Debug log
-        
-        if (latency < 1000) {
-          setNetworkStatus('good');
-        } else if (latency < 3000) {
-          setNetworkStatus('congested');
-        } else {
-          setNetworkStatus('error');
+    const checkDevice = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      setIsMobile(width < 769); // Mobile/tablet breakpoint
+      setOrientation(height > width ? 'portrait' : 'landscape');
+      
+      // Detect connection quality (rough estimation)
+      if ('connection' in navigator) {
+        const conn = (navigator as any).connection;
+        if (conn) {
+          const effectiveType = conn.effectiveType || 'wifi';
+          setConnectionQuality(effectiveType);
         }
-      } catch (error) {
-        console.warn('Network status check failed:', error instanceof Error ? error.message : 'Unknown error');
-        // Don't set to error immediately on first failure - might be temporary
-        setNetworkStatus('congested');
       }
     };
-
-    // Initial check with delay to let connection establish
-    const initialTimeout = setTimeout(checkNetworkStatus, 2000);
     
-    // Set up interval for periodic checks (less frequent to avoid rate limits)
-    const interval = setInterval(checkNetworkStatus, 60000); // Check every 60s
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    window.addEventListener('orientationchange', checkDevice);
+    
+    return () => {
+      window.removeEventListener('resize', checkDevice);
+      window.removeEventListener('orientationchange', checkDevice);
+    };
+  }, []);
+
+  // UPDATED FOR MOBILE: Optimized network status check with mobile considerations
+  const checkNetworkStatus = useCallback(async (controller?: AbortController) => {
+    if (!connection) {
+      setNetworkStatus('error');
+      return;
+    }
+
+    try {
+      const start = Date.now();
+      // Reduced timeout for mobile devices to preserve battery
+      const timeout = isMobile ? 5000 : 10000;
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), timeout)
+      );
+      
+      const promises = [connection.getLatestBlockhash('confirmed')];
+      if (controller?.signal) {
+        promises.push(new Promise((_, reject) => {
+          controller.signal.addEventListener('abort', () => reject(new Error('Aborted')));
+        }));
+      }
+      promises.push(timeoutPromise);
+      
+      await Promise.race(promises);
+      
+      const latency = Date.now() - start;
+      
+      // Adjusted thresholds for mobile devices
+      const goodThreshold = isMobile ? 1500 : 1000;
+      const congestedThreshold = isMobile ? 4000 : 3000;
+      
+      if (latency < goodThreshold) {
+        setNetworkStatus('good');
+      } else if (latency < congestedThreshold) {
+        setNetworkStatus('congested');
+      } else {
+        setNetworkStatus('error');
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Aborted') return;
+      console.warn('Network status check failed:', error instanceof Error ? error.message : 'Unknown error');
+      setNetworkStatus('congested');
+    }
+  }, [connection, isMobile]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    
+    // Initial check with delay
+    const initialTimeout = setTimeout(() => checkNetworkStatus(controller), 2000);
+    
+    // UPDATED FOR MOBILE: Adaptive polling based on device and connection
+    const getPollingInterval = () => {
+      if (isMobile) {
+        // Slower polling on mobile to preserve battery
+        switch (connectionQuality) {
+          case '2g': return 120000; // 2 minutes
+          case '3g': return 90000;  // 1.5 minutes  
+          case '4g': return 60000;  // 1 minute
+          default: return 45000;   // 45 seconds for wifi
+        }
+      }
+      return 30000; // 30 seconds for desktop
+    };
+    
+    const interval = setInterval(() => checkNetworkStatus(controller), getPollingInterval());
 
     return () => {
+      controller.abort();
       clearTimeout(initialTimeout);
       clearInterval(interval);
     };
-  }, [connection]);
+  }, [checkNetworkStatus, isMobile, connectionQuality]);
 
   const calculateDelay = (config: FormData): number => {
     let baseDelay: number;
@@ -374,63 +433,26 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Mobile-First Header */}
-      <header className="bg-gradient-to-r from-slate-900 via-gray-900 to-slate-800 shadow-xl border-b border-gray-700/30 sticky top-0 z-50 backdrop-blur-md">
-        <div className="container mx-auto px-3 sm:px-4 lg:px-6">
-          <div className="flex justify-between items-center h-16 sm:h-20">
-            {/* Mobile-Optimized Logo */}
-            <div className="flex items-center gap-2 sm:gap-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-400 to-cyan-300 rounded-lg flex items-center justify-center shadow-lg">
-                  <svg className="w-4 h-4 sm:w-6 sm:h-6 text-slate-900" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                  </svg>
-                </div>
-                <h1 className="text-lg sm:text-2xl lg:text-3xl font-black bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent tracking-wide sm:tracking-widest font-mono uppercase">
-                  SNOWPIERCER
-                </h1>
-              </div>
-              
-              {/* Mobile Network Status Badge */}
-              <div className={`hidden sm:flex px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase backdrop-blur-sm border ${
-                networkStatus === 'good' 
-                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' :
-                networkStatus === 'congested' 
-                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
-                  'bg-red-500/20 text-red-300 border-red-500/30'
-              } shadow-md`}>
-                <div className="flex items-center gap-1 sm:gap-1.5">
-                  <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
-                    networkStatus === 'good' ? 'bg-emerald-400 animate-pulse' :
-                    networkStatus === 'congested' ? 'bg-amber-400 animate-pulse' :
-                    'bg-red-400 animate-pulse'
-                  }`} />
-                  <span className="hidden sm:inline">Network:</span>
-                  <span className="capitalize">{networkStatus}</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Mobile Network Status Indicator */}
-            <div className={`sm:hidden w-3 h-3 rounded-full ${
-              networkStatus === 'good' ? 'bg-emerald-400' :
-              networkStatus === 'congested' ? 'bg-amber-400' :
-              'bg-red-400'
-            } animate-pulse mr-2`} />
-            
-            <NoSSR fallback={<div className="w-24 sm:w-32 h-10 sm:h-12 bg-gray-700/50 animate-pulse rounded-lg sm:rounded-xl" />}>
-              <WalletButton />
-            </NoSSR>
-          </div>
-        </div>
-      </header>
+      {/* UPDATED FOR MOBILE: Use new mobile-responsive header */}
+      <NoSSR fallback={
+        <div className="h-14 mobile-m:h-16 md:h-20 bg-slate-900 animate-pulse" />
+      }>
+        <MobileHeader networkStatus={networkStatus} />
+      </NoSSR>
 
-      {/* Mobile-First Main Content */}
-      <main className="container mx-auto py-2 sm:py-4 lg:py-6 px-2 sm:px-4 lg:px-6 max-w-7xl min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] pb-20 sm:pb-8">
+      {/* UPDATED FOR MOBILE: Mobile-First Main Content */}
+      <main className="container mx-auto py-mobile-xs mobile-m:py-mobile-sm md:py-4 lg:py-6 px-mobile-xs mobile-m:px-mobile-sm md:px-4 lg:px-6 max-w-7xl min-h-[calc(100vh-3.5rem)] mobile-m:min-h-[calc(100vh-4rem)] md:min-h-[calc(100vh-5rem)] pb-20 md:pb-8">
         <NoSSR fallback={
-          <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
-            <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-2 sm:border-4 border-blue-500 border-t-transparent"></div>
-            <span className="text-sm sm:text-base text-gray-600 dark:text-gray-400 font-medium">Loading VolumeBot...</span>
+          <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-mobile-md">
+            <div className="animate-spin rounded-full h-8 w-8 mobile-m:h-10 mobile-m:w-10 md:h-12 md:w-12 border-2 md:border-4 border-blue-500 border-t-transparent" />
+            <span className="text-mobile-sm mobile-m:text-mobile-base text-gray-600 dark:text-gray-400 font-medium">
+              Loading VolumeBot...
+            </span>
+            {isMobile && (
+              <p className="text-mobile-xs text-gray-500 dark:text-gray-500 text-center max-w-xs">
+                Optimized for {orientation} mode
+              </p>
+            )}
           </div>
         }>
           {!isRunning ? (
@@ -452,22 +474,32 @@ export default function Home() {
             </div>
           )}
         </NoSSR>
+        
+        {/* UPDATED FOR MOBILE: Connection quality indicator for mobile */}
+        {isMobile && connectionQuality && connectionQuality !== 'wifi' && (
+          <div className="fixed bottom-20 right-4 bg-yellow-500/90 text-white px-mobile-sm py-1 rounded-lg text-mobile-xs font-medium backdrop-blur-sm z-40">
+            {connectionQuality.toUpperCase()} Connection
+          </div>
+        )}
       </main>
 
-      {/* Mobile-Optimized Toast Notifications */}
+      {/* UPDATED FOR MOBILE: Optimized Toast Notifications */}
       <ToastContainer
-        position="bottom-center"
-        autoClose={4000}
-        hideProgressBar={false}
+        position={isMobile ? "bottom-center" : "bottom-right"}
+        autoClose={isMobile ? 3000 : 4000}
+        hideProgressBar={isMobile}
         newestOnTop
         closeOnClick
         rtl={false}
-        pauseOnFocusLoss={false}
-        draggable
-        pauseOnHover
+        pauseOnFocusLoss={!isMobile}
+        draggable={!isMobile}
+        pauseOnHover={!isMobile}
         theme="colored"
-        toastClassName="!text-sm !rounded-xl !shadow-xl !p-3"
-        className="!bottom-4 !left-4 !right-4 !top-auto sm:!bottom-8 sm:!right-8 sm:!left-auto sm:!top-auto sm:!w-96"
+        toastClassName={`!text-mobile-sm mobile-m:!text-sm !rounded-xl !shadow-xl !p-mobile-sm mobile-m:!p-3`}
+        className={isMobile 
+          ? "!bottom-4 !left-4 !right-4 !top-auto !w-auto" 
+          : "!bottom-8 !right-8 !left-auto !top-auto !w-96"
+        }
       />
     </div>
   );
