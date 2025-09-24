@@ -3,14 +3,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { Transaction, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import dynamic from 'next/dynamic';
 
 import Form from '@/components/Form';
 import ProgressDashboard from '@/components/ProgressDashboard';
 import NoSSR from '@/components/NoSSR';
-import { getSwapQuote, testConnection, checkBackendHealth, type SwapQuoteRequest } from '@/lib/api';
+import { getSwapQuote, testConnection, type SwapQuoteRequest } from '@/lib/api';
 // UPDATED FOR MOBILE: Dynamic imports for better performance
 const MobileHeader = dynamic(() => import('@/components/MobileHeader'), { ssr: false });
 
@@ -51,8 +50,6 @@ interface TradeLog {
 }
 
 const SOL_MINT = 'So11111111111111111111111111111111111111112';
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 export default function Home() {
   const { publicKey, signTransaction } = useWallet();

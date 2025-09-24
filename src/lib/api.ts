@@ -60,7 +60,8 @@ export interface TokenInfo {
 // API Utility Functions
 export const apiCall = async <T = unknown>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  timeoutMs: number = 30000
 ): Promise<ApiResponse<T>> => {
   try {
     console.log(`🔄 API Call: ${options.method || 'GET'} ${endpoint}`);
@@ -70,23 +71,43 @@ export const apiCall = async <T = unknown>(
       'Accept': 'application/json',
     };
 
-    const response = await fetch(endpoint, {
-      headers: { ...defaultHeaders, ...options.headers },
-      timeout: 30000, // 30 seconds for Render free tier
-      ...options,
-    });
+    // Create AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    try {
+      const response = await fetch(endpoint, {
+        headers: { ...defaultHeaders, ...options.headers },
+        signal: controller.signal,
+        ...options,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log(`✅ API Success: ${endpoint}`, data);
+      
+      return { success: true, data };
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      throw fetchError;
     }
-
-    const data = await response.json();
-    console.log(`✅ API Success: ${endpoint}`, data);
-    
-    return { success: true, data };
   } catch (error) {
     console.error(`❌ API Error: ${endpoint}`, error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    let errorMessage = 'Unknown error';
+    
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        errorMessage = `Request timeout after ${timeoutMs / 1000} seconds`;
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
     return { success: false, error: errorMessage };
   }
 };
