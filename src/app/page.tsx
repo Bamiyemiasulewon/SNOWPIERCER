@@ -10,6 +10,7 @@ import dynamic from 'next/dynamic';
 import Form from '@/components/Form';
 import ProgressDashboard from '@/components/ProgressDashboard';
 import NoSSR from '@/components/NoSSR';
+import { getSwapQuote, testConnection, checkBackendHealth, type SwapQuoteRequest } from '@/lib/api';
 // UPDATED FOR MOBILE: Dynamic imports for better performance
 const MobileHeader = dynamic(() => import('@/components/MobileHeader'), { ssr: false });
 
@@ -50,7 +51,8 @@ interface TradeLog {
 }
 
 const SOL_MINT = 'So11111111111111111111111111111111111111112';
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 export default function Home() {
   const { publicKey, signTransaction } = useWallet();
@@ -180,6 +182,28 @@ export default function Home() {
     };
   }, [checkNetworkStatus, isMobile, connectionQuality]);
 
+  // Test backend connection on mount
+  useEffect(() => {
+    const testBackendConnection = async () => {
+      console.log('🔄 Testing backend connection...');
+      try {
+        const isConnected = await testConnection();
+        if (isConnected) {
+          toast.success('✅ Backend connected successfully!');
+        } else {
+          toast.warn('⚠️ Backend connection issues detected. Features may be limited.');
+        }
+      } catch (error) {
+        console.error('Backend connection test failed:', error);
+        toast.error('❌ Unable to connect to backend. Please try refreshing.');
+      }
+    };
+
+    // Test connection after a short delay to avoid overwhelming on load
+    const timeout = setTimeout(testBackendConnection, 3000);
+    return () => clearTimeout(timeout);
+  }, []);
+
   const calculateDelay = (config: FormData): number => {
     let baseDelay: number;
     
@@ -217,16 +241,18 @@ export default function Home() {
         throw new Error('Wallet not connected');
       }
 
-      // Call backend to get swap transaction
-      const response = await axios.post(`${BACKEND_URL}/get-swap-quote`, {
+      // Call backend to get swap transaction using API utility
+      const quoteRequest: SwapQuoteRequest = {
         inputMint,
         outputMint,
         amount: Math.floor(amount * LAMPORTS_PER_SOL),
         slippageBps
-      });
+      };
+      
+      const response = await getSwapQuote(quoteRequest);
 
-      if (!response.data.swapTransaction) {
-        throw new Error('Failed to get swap transaction');
+      if (!response.success || !response.data?.swapTransaction) {
+        throw new Error(response.error || 'Failed to get swap transaction');
       }
 
       // Deserialize and sign transaction
