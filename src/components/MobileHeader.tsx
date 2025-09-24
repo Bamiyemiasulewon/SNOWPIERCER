@@ -66,39 +66,23 @@ export default function MobileHeader({ networkStatus, className = '' }: MobileHe
       {/* UPDATED FOR MOBILE: Mobile-first header design */}
       <header className={`bg-gradient-to-r from-slate-900 via-gray-900 to-slate-800 shadow-xl border-b border-gray-700/30 sticky top-0 z-50 backdrop-blur-md ${className}`}>
         <div className="container mx-auto px-mobile-sm mobile-m:px-mobile-md">
-          <div className="flex justify-between items-center h-14 mobile-m:h-16 md:h-20">
+          {/* UPDATED FOR MOBILE: Reduced header height for portrait mode */}
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center">
             
-            {/* UPDATED FOR MOBILE: Responsive logo section */}
-            <div className="flex items-center gap-mobile-sm mobile-m:gap-mobile-md">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 mobile-m:w-8 mobile-m:h-8 md:w-10 md:h-10 bg-gradient-to-br from-blue-400 to-cyan-300 rounded-lg flex items-center justify-center shadow-lg">
-                  <svg className="w-3.5 h-3.5 mobile-m:w-4 mobile-m:h-4 md:w-6 md:h-6 text-slate-900" fill="currentColor" viewBox="0 0 24 24">
+            {/* Top row - Logo and menu button */}
+            <div className="flex justify-between items-center h-10 mobile-m:h-12 md:h-20">
+              <div className="flex items-center gap-1 mobile-m:gap-2">
+                <div className="w-6 h-6 mobile-m:w-7 mobile-m:h-7 md:w-10 md:h-10 bg-gradient-to-br from-blue-400 to-cyan-300 rounded-lg flex items-center justify-center shadow-lg">
+                  <svg className="w-3 h-3 mobile-m:w-3.5 mobile-m:h-3.5 md:w-6 md:h-6 text-slate-900" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                   </svg>
                 </div>
-                <h1 className="text-mobile-lg mobile-m:text-mobile-xl md:text-2xl lg:text-3xl font-black bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent tracking-wide font-mono uppercase">
+                <h1 className="text-mobile-sm mobile-m:text-mobile-base md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent tracking-wide font-mono uppercase">
                   SNOWPIERCER
                 </h1>
               </div>
               
-              {/* UPDATED FOR MOBILE: Network status - hidden on xs, visible on sm+ */}
-              <div className={`hidden mobile-m:flex px-2 py-1 md:px-3 md:py-1.5 rounded-full text-mobile-xs md:text-xs font-semibold tracking-wide uppercase backdrop-blur-sm border ${getNetworkColor()} shadow-md`}>
-                <div className="flex items-center gap-1 md:gap-1.5">
-                  <div className="animate-pulse">{getNetworkIcon()}</div>
-                  <span className="hidden md:inline">Network:</span>
-                  <span className="capitalize">{networkStatus}</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* UPDATED FOR MOBILE: Right section with network indicator and wallet */}
-            <div className="flex items-center gap-mobile-sm">
-              {/* Mobile-only network indicator */}
-              <div className="mobile-m:hidden">
-                {getNetworkIcon()}
-              </div>
-              
-              {/* UPDATED FOR MOBILE: Mobile hamburger menu - shown only on small screens */}
+              {/* Mobile hamburger menu */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="md:hidden min-w-touch min-h-touch flex items-center justify-center bg-gray-800/50 hover:bg-gray-700/50 rounded-lg border border-gray-600 transition-colors duration-200 touch-manipulation"
@@ -110,8 +94,48 @@ export default function MobileHeader({ networkStatus, className = '' }: MobileHe
                   <Menu className="h-5 w-5 text-white" />
                 )}
               </button>
+            </div>
+            
+            {/* Bottom row - Network status and wallet (mobile only) */}
+            <div className="md:hidden flex justify-between items-center pb-2 pt-1">
+              <div className="flex items-center gap-1">
+                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold tracking-wide uppercase backdrop-blur-sm border ${getNetworkColor()} shadow-md`}>
+                  <div className="animate-pulse">{getNetworkIcon()}</div>
+                  <span className="capitalize">{networkStatus}</span>
+                </div>
+              </div>
               
-              {/* UPDATED FOR MOBILE: Wallet button - always visible */}
+              {/* Wallet button moved here for mobile */}
+              <div className="flex-shrink-0">
+                <WalletButton />
+              </div>
+            </div>
+            
+            {/* Desktop layout - preserved original structure */}
+            <div className="hidden md:flex items-center gap-mobile-sm mobile-m:gap-mobile-md">
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-cyan-300 rounded-lg flex items-center justify-center shadow-lg">
+                  <svg className="w-6 h-6 text-slate-900" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                  </svg>
+                </div>
+                <h1 className="text-2xl lg:text-3xl font-black bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent tracking-wide font-mono uppercase">
+                  SNOWPIERCER
+                </h1>
+              </div>
+              
+              {/* Desktop Network status */}
+              <div className={`flex px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase backdrop-blur-sm border ${getNetworkColor()} shadow-md`}>
+                <div className="flex items-center gap-1.5">
+                  <div className="animate-pulse">{getNetworkIcon()}</div>
+                  <span>Network:</span>
+                  <span className="capitalize">{networkStatus}</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Desktop Right section - wallet only */}
+            <div className="hidden md:flex items-center">
               <div className="flex-shrink-0">
                 <WalletButton />
               </div>

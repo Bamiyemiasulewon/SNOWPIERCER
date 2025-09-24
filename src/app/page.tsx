@@ -434,13 +434,13 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       {/* UPDATED FOR MOBILE: Use new mobile-responsive header */}
       <NoSSR fallback={
-        <div className="h-14 mobile-m:h-16 md:h-20 bg-slate-900 animate-pulse" />
+        <div className="h-16 mobile-m:h-20 md:h-20 bg-slate-900 animate-pulse" />
       }>
         <MobileHeader networkStatus={networkStatus} />
       </NoSSR>
 
       {/* UPDATED FOR MOBILE: Mobile-First Main Content */}
-      <main className="container mx-auto py-mobile-xs mobile-m:py-mobile-sm md:py-4 lg:py-6 px-mobile-xs mobile-m:px-mobile-sm md:px-4 lg:px-6 max-w-7xl min-h-[calc(100vh-3.5rem)] mobile-m:min-h-[calc(100vh-4rem)] md:min-h-[calc(100vh-5rem)] pb-20 md:pb-8">
+      <main className="container mx-auto py-mobile-xs mobile-m:py-mobile-sm md:py-4 lg:py-6 px-mobile-xs mobile-m:px-mobile-sm md:px-4 lg:px-6 max-w-7xl min-h-[calc(100vh-4rem)] mobile-m:min-h-[calc(100vh-5rem)] md:min-h-[calc(100vh-5rem)] pb-20 md:pb-8">
         <NoSSR fallback={
           <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-mobile-md">
             <div className="animate-spin rounded-full h-8 w-8 mobile-m:h-10 mobile-m:w-10 md:h-12 md:w-12 border-2 md:border-4 border-blue-500 border-t-transparent" />
