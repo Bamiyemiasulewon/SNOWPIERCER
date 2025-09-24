@@ -65,19 +65,19 @@ export default function MobileHeader({ networkStatus, className = '' }: MobileHe
     <>
       {/* UPDATED FOR MOBILE: Mobile-first header design */}
       <header className={`bg-gradient-to-r from-slate-900 via-gray-900 to-slate-800 shadow-xl border-b border-gray-700/30 sticky top-0 z-50 backdrop-blur-md ${className}`}>
-        <div className="container mx-auto px-mobile-sm mobile-m:px-mobile-md">
+        <div className="container mx-auto px-2 mobile-m:px-3 md:px-mobile-md">
           {/* UPDATED FOR MOBILE: Reduced header height for portrait mode */}
           <div className="flex flex-col md:flex-row md:justify-between md:items-center">
             
-            {/* Top row - Logo and menu button */}
-            <div className="flex justify-between items-center h-10 mobile-m:h-12 md:h-20">
-              <div className="flex items-center gap-1 mobile-m:gap-2">
-                <div className="w-6 h-6 mobile-m:w-7 mobile-m:h-7 md:w-10 md:h-10 bg-gradient-to-br from-blue-400 to-cyan-300 rounded-lg flex items-center justify-center shadow-lg">
-                  <svg className="w-3 h-3 mobile-m:w-3.5 mobile-m:h-3.5 md:w-6 md:h-6 text-slate-900" fill="currentColor" viewBox="0 0 24 24">
+            {/* Top row - Logo and menu button - Ultra compact for iPhone */}
+            <div className="flex justify-between items-center h-8 mobile-m:h-10 md:h-20">
+              <div className="flex items-center gap-1">
+                <div className="w-5 h-5 mobile-m:w-6 mobile-m:h-6 md:w-10 md:h-10 bg-gradient-to-br from-blue-400 to-cyan-300 rounded flex items-center justify-center shadow-sm">
+                  <svg className="w-2.5 h-2.5 mobile-m:w-3 mobile-m:h-3 md:w-6 md:h-6 text-slate-900" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                   </svg>
                 </div>
-                <h1 className="text-mobile-sm mobile-m:text-mobile-base md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent tracking-wide font-mono uppercase">
+                <h1 className="text-xs mobile-m:text-sm md:text-2xl lg:text-3xl font-semibold bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent tracking-tight font-mono uppercase">
                   SNOWPIERCER
                 </h1>
               </div>
@@ -96,12 +96,12 @@ export default function MobileHeader({ networkStatus, className = '' }: MobileHe
               </button>
             </div>
             
-            {/* Bottom row - Network status and wallet (mobile only) */}
-            <div className="md:hidden flex justify-between items-center pb-2 pt-1">
-              <div className="flex items-center gap-1">
-                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold tracking-wide uppercase backdrop-blur-sm border ${getNetworkColor()} shadow-md`}>
+            {/* Bottom row - Network status and wallet (mobile only) - Ultra compact */}
+            <div className="md:hidden flex justify-between items-center pb-1 pt-0.5">
+              <div className="flex items-center">
+                <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium tracking-normal uppercase backdrop-blur-sm border ${getNetworkColor()}`}>
                   <div className="animate-pulse">{getNetworkIcon()}</div>
-                  <span className="capitalize">{networkStatus}</span>
+                  <span className="capitalize text-xs">{networkStatus}</span>
                 </div>
               </div>
               

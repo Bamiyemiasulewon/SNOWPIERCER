@@ -39,14 +39,14 @@ export default function WalletButton() {
   // Don't render until mounted to prevent hydration errors
   if (!mounted) {
     return (
-      <div className="w-32 h-12 bg-gray-200 animate-pulse rounded-xl" />
+      <div className="w-24 h-8 md:w-32 md:h-12 bg-gray-200 animate-pulse rounded-lg md:rounded-xl" />
     );
   }
 
   if (!connected || !publicKey) {
     return (
       <div className="relative">
-        <WalletMultiButton className="!bg-gradient-to-r !from-blue-500 !to-cyan-500 hover:!from-blue-600 hover:!to-cyan-600 !border-0 !rounded-xl !px-6 !py-3 !text-white !font-semibold !tracking-wide !shadow-lg hover:!shadow-xl !transition-all !duration-200 !transform hover:!scale-105 !text-sm" />
+        <WalletMultiButton className="!bg-gradient-to-r !from-blue-500 !to-cyan-500 hover:!from-blue-600 hover:!to-cyan-600 !border-0 !rounded-lg !px-3 !py-2 md:!px-6 md:!py-3 !text-white !font-medium !tracking-wide !shadow-md hover:!shadow-lg !transition-all !duration-200 !text-xs md:!text-sm" />
       </div>
     );
   }
@@ -56,19 +56,19 @@ export default function WalletButton() {
   return (
     <div className="relative">
       <div className="flex items-center gap-3">
-        {/* Connected Wallet Display */}
+        {/* Connected Wallet Display - Compact for mobile */}
         <div 
-          className="flex items-center gap-3 bg-slate-800/80 backdrop-blur-sm border border-slate-700/50 px-4 py-2.5 rounded-xl cursor-pointer hover:bg-slate-700/80 transition-all duration-200 shadow-lg group"
+          className="flex items-center gap-1.5 md:gap-3 bg-slate-800/80 backdrop-blur-sm border border-slate-700/50 px-2 py-1.5 md:px-4 md:py-2.5 rounded-lg md:rounded-xl cursor-pointer hover:bg-slate-700/80 transition-all duration-200 shadow-sm md:shadow-lg group"
           onClick={() => setShowDropdown(!showDropdown)}
         >
           {/* Status Indicator */}
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse shadow-emerald-400/50 shadow-lg" />
-            <Wallet className="w-4 h-4 text-cyan-300" />
+          <div className="flex items-center gap-1 md:gap-2">
+            <div className="w-2 h-2 md:w-2.5 md:h-2.5 bg-emerald-400 rounded-full animate-pulse shadow-emerald-400/50 shadow-sm md:shadow-lg" />
+            <Wallet className="w-3 h-3 md:w-4 md:h-4 text-cyan-300" />
           </div>
           
           {/* Wallet Address */}
-          <span className="text-sm font-mono font-medium text-gray-200 tracking-wider">
+          <span className="text-xs md:text-sm font-mono font-medium text-gray-200 tracking-normal md:tracking-wider">
             {shortAddress}
           </span>
           
@@ -78,18 +78,18 @@ export default function WalletButton() {
               e.stopPropagation();
               handleCopyAddress();
             }}
-            className="p-1.5 hover:bg-slate-600/50 rounded-lg transition-colors duration-150"
+            className="p-1 md:p-1.5 hover:bg-slate-600/50 rounded transition-colors duration-150"
             title="Copy wallet address"
           >
             {copied ? (
-              <Check className="w-4 h-4 text-emerald-400" />
+              <Check className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
             ) : (
-              <Copy className="w-4 h-4 text-gray-400 hover:text-cyan-300" />
+              <Copy className="w-3 h-3 md:w-4 md:h-4 text-gray-400 hover:text-cyan-300" />
             )}
           </button>
           
           {/* Dropdown Arrow */}
-          <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`w-3 h-3 md:w-4 md:h-4 text-gray-400 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
         </div>
       </div>
 
