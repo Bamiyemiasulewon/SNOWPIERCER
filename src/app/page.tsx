@@ -12,7 +12,6 @@ import ProgressDashboard from '@/components/ProgressDashboard';
 import NoSSR from '@/components/NoSSR';
 // UPDATED FOR MOBILE: Dynamic imports for better performance
 const MobileHeader = dynamic(() => import('@/components/MobileHeader'), { ssr: false });
-const TrendingModal = dynamic(() => import('@/components/TrendingModal'), { ssr: false });
 
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -89,9 +88,9 @@ export default function Home() {
       
       // Detect connection quality (rough estimation)
       if ('connection' in navigator) {
-        const conn = (navigator as any).connection;
-        if (conn) {
-          const effectiveType = conn.effectiveType || 'wifi';
+        const conn = (navigator as unknown as { connection?: { effectiveType?: string } }).connection;
+        if (conn?.effectiveType) {
+          const effectiveType = conn.effectiveType as '2g' | '3g' | '4g' | 'wifi';
           setConnectionQuality(effectiveType);
         }
       }
@@ -122,7 +121,7 @@ export default function Home() {
         setTimeout(() => reject(new Error('Request timeout')), timeout)
       );
       
-      const promises = [connection.getLatestBlockhash('confirmed')];
+      const promises: Promise<unknown>[] = [connection.getLatestBlockhash('confirmed')];
       if (controller?.signal) {
         promises.push(new Promise((_, reject) => {
           controller.signal.addEventListener('abort', () => reject(new Error('Aborted')));

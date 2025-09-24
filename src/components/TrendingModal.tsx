@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { X, Twitter, Copy, ExternalLink, TrendingUp, DollarSign } from 'lucide-react';
+import { X, Twitter, Copy, TrendingUp, DollarSign } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 interface TrendingData {

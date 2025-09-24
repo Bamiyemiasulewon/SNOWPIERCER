@@ -1,13 +1,7 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
-import { TrendingUp, DollarSign, Activity, Clock, AlertTriangle, CheckCircle, BarChart3, PieChart } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, PieChart as RechartsPieChart, Cell, BarChart, Bar, Tooltip } from 'recharts';
-import dynamic from 'next/dynamic';
-
-// UPDATED FOR MOBILE: Dynamic chart imports to prevent SSR issues
-const DynamicLineChart = dynamic(() => import('recharts').then(mod => mod.LineChart), { ssr: false });
-const DynamicPieChart = dynamic(() => import('recharts').then(mod => mod.PieChart), { ssr: false });
+import React, { useEffect, useState } from 'react';
+import { TrendingUp, DollarSign, Activity, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 
 interface ProgressStats {
   tradesCompleted: number;
@@ -44,46 +38,19 @@ export default function ProgressDashboard({
 }: ProgressDashboardProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [viewMode, setViewMode] = useState<'overview' | 'charts' | 'logs'>('overview');
-  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
 
-  // UPDATED FOR MOBILE: Handle orientation changes and time updates
+  // UPDATED FOR MOBILE: Handle time updates
   useEffect(() => {
-    const handleOrientationChange = () => {
-      setOrientation(window.innerHeight > window.innerWidth ? 'portrait' : 'landscape');
-    };
 
     const timeInterval = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
 
-    handleOrientationChange();
-    window.addEventListener('orientationchange', handleOrientationChange);
-    window.addEventListener('resize', handleOrientationChange);
-
     return () => {
       clearInterval(timeInterval);
-      window.removeEventListener('orientationchange', handleOrientationChange);
-      window.removeEventListener('resize', handleOrientationChange);
     };
   }, []);
 
-  // UPDATED FOR MOBILE: Optimized chart data with reduced points for mobile
-  const chartData = useMemo(() => {
-    const maxPoints = orientation === 'portrait' ? 10 : 20; // Fewer points on mobile
-    const recent = tradeLogs.slice(-maxPoints).map((log, index) => ({
-      time: index + 1,
-      volume: log.amount * 100, // Mock volume calculation
-      success: log.status === 'success' ? 1 : 0,
-    }));
-    return recent;
-  }, [tradeLogs, orientation]);
-
-  // UPDATED FOR MOBILE: Success rate pie chart data
-  const pieData = useMemo(() => [
-    { name: 'Success', value: stats.successfulTrades, color: '#10b981' },
-    { name: 'Failed', value: stats.failedTrades, color: '#ef4444' },
-    { name: 'Pending', value: stats.totalTrades - stats.tradesCompleted, color: '#6b7280' },
-  ], [stats]);
 
   const progressPercentage = (stats.tradesCompleted / stats.totalTrades) * 100;
   const successRate = stats.tradesCompleted > 0 
