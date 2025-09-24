@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { Transaction, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { toast, ToastContainer } from 'react-toastify';
@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic';
 import Form from '@/components/Form';
 import ProgressDashboard from '@/components/ProgressDashboard';
 import NoSSR from '@/components/NoSSR';
+import WalletSection from '@/components/WalletSection';
 import { getSwapQuote, testConnection, type SwapQuoteRequest } from '@/lib/api';
 // UPDATED FOR MOBILE: Dynamic imports for better performance
 const MobileHeader = dynamic(() => import('@/components/MobileHeader'), { ssr: false });
@@ -66,7 +67,6 @@ export default function Home() {
     currentStatus: 'running'
   });
   const [tradeLogs, setTradeLogs] = useState<TradeLog[]>([]);
-  const [networkStatus, setNetworkStatus] = useState<'good' | 'congested' | 'error'>('good');
   
   // UPDATED FOR MOBILE: Mobile-specific state management
   const [isMobile, setIsMobile] = useState(false);
@@ -105,79 +105,6 @@ export default function Home() {
     };
   }, []);
 
-  // UPDATED FOR MOBILE: Optimized network status check with mobile considerations
-  const checkNetworkStatus = useCallback(async (controller?: AbortController) => {
-    if (!connection) {
-      setNetworkStatus('error');
-      return;
-    }
-
-    try {
-      const start = Date.now();
-      // Reduced timeout for mobile devices to preserve battery
-      const timeout = isMobile ? 5000 : 10000;
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), timeout)
-      );
-      
-      const promises: Promise<unknown>[] = [connection.getLatestBlockhash('confirmed')];
-      if (controller?.signal) {
-        promises.push(new Promise((_, reject) => {
-          controller.signal.addEventListener('abort', () => reject(new Error('Aborted')));
-        }));
-      }
-      promises.push(timeoutPromise);
-      
-      await Promise.race(promises);
-      
-      const latency = Date.now() - start;
-      
-      // Adjusted thresholds for mobile devices
-      const goodThreshold = isMobile ? 1500 : 1000;
-      const congestedThreshold = isMobile ? 4000 : 3000;
-      
-      if (latency < goodThreshold) {
-        setNetworkStatus('good');
-      } else if (latency < congestedThreshold) {
-        setNetworkStatus('congested');
-      } else {
-        setNetworkStatus('error');
-      }
-    } catch (error) {
-      if (error instanceof Error && error.message === 'Aborted') return;
-      console.warn('Network status check failed:', error instanceof Error ? error.message : 'Unknown error');
-      setNetworkStatus('congested');
-    }
-  }, [connection, isMobile]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    
-    // Initial check with delay
-    const initialTimeout = setTimeout(() => checkNetworkStatus(controller), 2000);
-    
-    // UPDATED FOR MOBILE: Adaptive polling based on device and connection
-    const getPollingInterval = () => {
-      if (isMobile) {
-        // Slower polling on mobile to preserve battery
-        switch (connectionQuality) {
-          case '2g': return 120000; // 2 minutes
-          case '3g': return 90000;  // 1.5 minutes  
-          case '4g': return 60000;  // 1 minute
-          default: return 45000;   // 45 seconds for wifi
-        }
-      }
-      return 30000; // 30 seconds for desktop
-    };
-    
-    const interval = setInterval(() => checkNetworkStatus(controller), getPollingInterval());
-
-    return () => {
-      controller.abort();
-      clearTimeout(initialTimeout);
-      clearInterval(interval);
-    };
-  }, [checkNetworkStatus, isMobile, connectionQuality]);
 
   // Test backend connection on mount
   useEffect(() => {
@@ -455,15 +382,22 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      {/* MOBILE-OPTIMIZED: Ultra-compact header - max 60px */}
+      {/* MOBILE-OPTIMIZED: Ultra-compact header */}
       <NoSSR fallback={
-        <div className="h-12 sm:h-14 md:h-20 bg-slate-900 animate-pulse" />
+        <div className="h-8 sm:h-10 md:h-12 bg-slate-900 animate-pulse" />
       }>
-        <MobileHeader networkStatus={networkStatus} />
+        <MobileHeader />
+      </NoSSR>
+      
+      {/* Wallet section under header */}
+      <NoSSR fallback={
+        <div className="h-14 bg-slate-800/30 animate-pulse border-b border-gray-700/20" />
+      }>
+        <WalletSection />
       </NoSSR>
 
-      {/* MOBILE-OPTIMIZED: Maximum content space with compact header */}
-      <main className="container mx-auto py-2 sm:py-3 md:py-4 lg:py-6 px-3 md:px-4 lg:px-6 max-w-7xl min-h-[calc(100vh-3rem)] sm:min-h-[calc(100vh-3.5rem)] md:min-h-[calc(100vh-5rem)] pb-16 md:pb-8">
+      {/* MOBILE-OPTIMIZED: Maximum content space with ultra-compact header */}
+      <main className="container mx-auto py-2 sm:py-3 md:py-4 lg:py-6 px-3 md:px-4 lg:px-6 max-w-7xl min-h-[calc(100vh-4rem)] pb-16 md:pb-8">
         <NoSSR fallback={
           <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-mobile-md">
             <div className="animate-spin rounded-full h-8 w-8 mobile-m:h-10 mobile-m:w-10 md:h-12 md:w-12 border-2 md:border-4 border-blue-500 border-t-transparent" />

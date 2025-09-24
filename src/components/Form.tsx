@@ -5,6 +5,7 @@ import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { toast } from 'react-toastify';
 import { Play, StopCircle, AlertCircle } from 'lucide-react';
+import { API_ENDPOINTS } from '@/lib/api';
 
 interface Platform {
   id: string;
@@ -95,7 +96,7 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
         
-        const response = await fetch('http://localhost:8000/api/trending/platforms', {
+        const response = await fetch(API_ENDPOINTS.trendingPlatforms, {
           method: 'GET',
           signal: controller.signal,
           headers: {
@@ -357,7 +358,7 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
       
-      const response = await fetch('http://localhost:8000/api/trending/multi-platform-costs', {
+      const response = await fetch(API_ENDPOINTS.trendingMultiPlatformCosts, {
         method: 'POST',
         signal: controller.signal,
         headers: {
