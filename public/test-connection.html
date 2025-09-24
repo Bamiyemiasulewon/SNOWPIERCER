@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snowpiercer Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #0f0f23; color: #cccccc; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .status { padding: 15px; margin: 10px 0; border-radius: 8px; }
+        .success { background: #2d5a2d; border-left: 4px solid #4caf50; }
+        .error { background: #5a2d2d; border-left: 4px solid #f44336; }
+        .info { background: #2d2d5a; border-left: 4px solid #2196f3; }
+        button { background: #4caf50; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; margin: 5px; }
+        button:hover { background: #45a049; }
+        pre { background: #1a1a1a; padding: 15px; border-radius: 6px; overflow-x: auto; }
+        .url { font-family: monospace; background: #1a1a1a; padding: 4px 8px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Snowpiercer Frontend ↔ Backend Connection Test</h1>
+        
+        <div class="status info">
+            <h3>Configuration</h3>
+            <p><strong>Frontend:</strong> <span class="url">https://snowpiercer-pi.vercel.app</span></p>
+            <p><strong>Backend:</strong> <span class="url">https://snowpiercer-backend-1.onrender.com</span></p>
+            <p><strong>API:</strong> <span class="url">https://snowpiercer-backend-1.onrender.com/api</span></p>
+        </div>
+
+        <button onclick="testConnection()">🧪 Test Connection</button>
+        <button onclick="testAPIEndpoints()">🔌 Test API Endpoints</button>
+        <button onclick="clearResults()">🧹 Clear Results</button>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'https://snowpiercer-backend-1.onrender.com';
+        const API_BASE = 'https://snowpiercer-backend-1.onrender.com/api';
+
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function testEndpoint(name, url) {
+            try {
+                log(`🔄 Testing ${name}: ${url}`, 'info');
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.text();
+                    log(`✅ ${name}: SUCCESS (${response.status})`, 'success');
+                    
+                    try {
+                        const json = JSON.parse(data);
+                        log(`<pre>${JSON.stringify(json, null, 2)}</pre>`, 'success');
+                    } catch (e) {
+                        log(`<pre>${data.substring(0, 300)}${data.length > 300 ? '...' : ''}</pre>`, 'success');
+                    }
+                    return true;
+                } else {
+                    log(`❌ ${name}: HTTP ${response.status} - ${response.statusText}`, 'error');
+                    return false;
+                }
+            } catch (error) {
+                log(`❌ ${name}: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function testConnection() {
+            clearResults();
+            log('🚀 Starting basic connection test...', 'info');
+            log('⏳ Note: First request may take 30-60 seconds if backend is sleeping (Render free tier)', 'info');
+
+            const tests = [
+                ['Root Endpoint', `${BACKEND_URL}/`],
+                ['Health Check', `${BACKEND_URL}/health`],
+                ['API Documentation', `${BACKEND_URL}/docs`],
+            ];
+
+            let successCount = 0;
+            for (const [name, url] of tests) {
+                const success = await testEndpoint(name, url);
+                if (success) successCount++;
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+            if (successCount === tests.length) {
+                log('🎉 All basic tests passed! Backend is responsive.', 'success');
+            } else if (successCount > 0) {
+                log(`⚠️ ${successCount}/${tests.length} tests passed. Backend may be partially responsive.`, 'info');
+            } else {
+                log('❌ No tests passed. Backend may be sleeping or unreachable.', 'error');
+                log('💡 Try again in 30-60 seconds. Render free tier backends sleep after inactivity.', 'info');
+            }
+        }
+
+        async function testAPIEndpoints() {
+            clearResults();
+            log('🔌 Testing VolumeBot API endpoints...', 'info');
+
+            const apiTests = [
+                ['API Tokens', `${API_BASE}/tokens`],
+                ['API Status', `${API_BASE}/status`],
+                ['API Health', `${API_BASE}/health`],
+                ['Quote Endpoint', `${API_BASE}/quote`],
+            ];
+
+            let successCount = 0;
+            for (const [name, url] of apiTests) {
+                const success = await testEndpoint(name, url);
+                if (success) successCount++;
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            }
+
+            log(`🔗 API Test Complete: ${successCount}/${apiTests.length} endpoints working`, 
+                successCount > 0 ? 'success' : 'error');
+
+            if (successCount > 0) {
+                log('✅ Your frontend can communicate with the backend!', 'success');
+                log('🚀 VolumeBot should work correctly at https://snowpiercer-pi.vercel.app', 'success');
+            } else {
+                log('❌ API endpoints not responding. Check backend deployment.', 'error');
+            }
+        }
+
+        // Auto-run basic test when page loads
+        window.onload = () => {
+            log('📋 Connection test page loaded. Backend connection status will be checked automatically...', 'info');
+            setTimeout(testConnection, 2000);
+        };
+    </script>
+</body>
+</html>
