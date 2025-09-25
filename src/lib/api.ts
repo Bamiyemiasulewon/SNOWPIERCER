@@ -24,6 +24,7 @@ export const API_ENDPOINTS = {
   startBot: `${API_BASE_URL}/bot/start`,
   stopBot: `${API_BASE_URL}/bot/stop`,
   botStatus: `${API_BASE_URL}/bot/status`,
+  quickStatus: `${API_BASE_URL}/quick-status`,
   
   // Trending Operations
   trendingPlatforms: `${API_BASE_URL}/trending/platforms`,
