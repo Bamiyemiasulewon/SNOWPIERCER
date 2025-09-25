@@ -429,30 +429,30 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
 
   return (
     <div className="w-full max-w-5xl mx-auto px-mobile-xs mobile-m:px-mobile-sm md:px-mobile-md">
-      {/* UPDATED FOR MOBILE: Mobile-First Form Container */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl shadow-lg md:shadow-xl border border-gray-200 dark:border-gray-700 p-mobile-sm mobile-m:p-mobile-md md:p-6 lg:p-8 mb-mobile-sm md:mb-6">
-        {/* UPDATED FOR MOBILE: Responsive header */}
-        <div className="mb-mobile-md md:mb-8 text-center md:text-left">
-          <h2 className="text-mobile-xl mobile-m:text-mobile-2xl md:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white mb-2">
+      {/* Mobile-Optimized Form Container */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl shadow-lg md:shadow-xl border border-gray-200 dark:border-gray-700 p-4 mobile-m:p-6 md:p-6 lg:p-8 mb-4 md:mb-6">
+        {/* Improved Header with Better Mobile Spacing */}
+        <div className="mb-6 md:mb-8 text-center md:text-left">
+          <h2 className="text-xl mobile-m:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800 dark:text-white mb-3 md:mb-4">
             Volume Bot Configuration
           </h2>
-          <p className="text-mobile-sm mobile-m:text-mobile-base md:text-base text-gray-600 dark:text-gray-400">
+          <p className="text-sm mobile-m:text-base md:text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
             Configure your Solana token volume boosting parameters
           </p>
         </div>
 
-        {/* UPDATED FOR MOBILE: Wallet Status */}
-        <div className="mb-mobile-md md:mb-8 p-mobile-sm mobile-m:p-mobile-md bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-lg md:rounded-xl border border-gray-200 dark:border-gray-600">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-mobile-sm">
-            <div className="flex items-center gap-mobile-sm">
-              <div className={`w-3 h-3 mobile-m:w-4 mobile-m:h-4 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
-              <span className="text-mobile-sm mobile-m:text-mobile-base font-medium text-gray-700 dark:text-gray-200">
+        {/* Enhanced Wallet Status Section */}
+        <div className="mb-6 md:mb-8 p-4 mobile-m:p-5 md:p-6 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-lg md:rounded-xl border border-gray-200 dark:border-gray-600">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
+            <div className="flex items-center gap-3">
+              <div className={`w-4 h-4 mobile-m:w-5 mobile-m:h-5 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
+              <span className="text-sm mobile-m:text-base font-semibold text-gray-700 dark:text-gray-200">
                 {connected ? 'Wallet Connected' : 'Wallet Not Connected'}
               </span>
             </div>
             {connected && (
-              <div className="bg-white dark:bg-gray-800 px-mobile-sm py-1.5 rounded-lg border border-gray-200 dark:border-gray-600">
-                <span className="text-mobile-xs mobile-m:text-mobile-sm font-mono text-gray-600 dark:text-gray-400">
+              <div className="bg-white dark:bg-gray-800 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
+                <span className="text-sm mobile-m:text-base font-mono text-gray-600 dark:text-gray-400">
                   Balance: <span className="font-bold text-blue-600 dark:text-blue-400">{solBalance.toFixed(4)} SOL</span>
                 </span>
               </div>
@@ -460,10 +460,10 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-mobile-md md:space-y-6 lg:space-y-8">
-          {/* UPDATED FOR MOBILE: Token Address Input */}
-          <div className="space-y-mobile-sm">
-            <label className="block text-mobile-sm mobile-m:text-mobile-base font-medium text-gray-700 dark:text-gray-300">
+        <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
+          {/* Enhanced Token Address Input */}
+          <div className="space-y-3">
+            <label className="block text-sm mobile-m:text-base font-semibold text-gray-700 dark:text-gray-300">
               Token Address (SPL Token Mint)
             </label>
             <input
@@ -471,21 +471,21 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
               value={formData.tokenAddress}
               onChange={(e) => handleInputChange('tokenAddress', e.target.value)}
               placeholder="Enter Solana token address..."
-              className="w-full min-h-touch px-mobile-sm mobile-m:px-4 py-3 mobile-m:py-4 text-mobile-base mobile-m:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 touch-manipulation"
+              className="w-full h-12 mobile-m:h-14 px-4 mobile-m:px-5 py-3 mobile-m:py-4 text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 touch-manipulation"
               disabled={isRunning}
             />
             {errors.tokenAddress && (
-              <div className="flex items-center gap-2 mt-2 p-mobile-sm bg-red-50 dark:bg-red-900/20 rounded-lg border-l-4 border-red-400">
+              <div className="flex items-center gap-2 mt-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border-l-4 border-red-400">
                 <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
-                <p className="text-mobile-sm text-red-600 dark:text-red-400">{errors.tokenAddress}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{errors.tokenAddress}</p>
               </div>
             )}
           </div>
 
-          {/* Mobile-First Trading Parameters Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300">
+          {/* Enhanced Trading Parameters Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mobile-m:gap-6 lg:gap-8">
+            <div className="space-y-3">
+              <label className="block text-sm mobile-m:text-base font-semibold text-gray-700 dark:text-gray-300">
                 Number of Trades
               </label>
               <input
@@ -494,19 +494,19 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
                 max="10000"
                 value={formData.numberOfTrades}
                 onChange={(e) => handleInputChange('numberOfTrades', parseInt(e.target.value))}
-                className="w-full px-4 py-3 sm:py-4 text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-gray-700 dark:text-white"
+                className="w-full h-12 mobile-m:h-14 px-4 mobile-m:px-5 py-3 mobile-m:py-4 text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-gray-700 dark:text-white touch-manipulation"
                 disabled={isRunning}
               />
               {errors.numberOfTrades && (
-                <div className="flex items-center gap-2 mt-1 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg border-l-4 border-red-400">
+                <div className="flex items-center gap-2 mt-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border-l-4 border-red-400">
                   <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
                   <p className="text-sm text-red-600 dark:text-red-400">{errors.numberOfTrades}</p>
                 </div>
               )}
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300">
+            <div className="space-y-3">
+              <label className="block text-sm mobile-m:text-base font-semibold text-gray-700 dark:text-gray-300">
                 Duration (minutes)
               </label>
               <input
@@ -515,11 +515,11 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
                 max="1440"
                 value={formData.duration}
                 onChange={(e) => handleInputChange('duration', parseInt(e.target.value))}
-                className="w-full px-4 py-3 sm:py-4 text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-gray-700 dark:text-white"
+                className="w-full h-12 mobile-m:h-14 px-4 mobile-m:px-5 py-3 mobile-m:py-4 text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-gray-700 dark:text-white touch-manipulation"
                 disabled={isRunning}
               />
               {errors.duration && (
-                <div className="flex items-center gap-2 mt-1 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg border-l-4 border-red-400">
+                <div className="flex items-center gap-2 mt-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border-l-4 border-red-400">
                   <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
                   <p className="text-sm text-red-600 dark:text-red-400">{errors.duration}</p>
                 </div>
@@ -528,9 +528,9 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
           </div>
 
           {/* Trade Size and Slippage Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mobile-m:gap-6 lg:gap-8">
+            <div className="space-y-3">
+              <label className="block text-sm mobile-m:text-base font-semibold text-gray-700 dark:text-gray-300">
                 Trade Size (SOL)
               </label>
               <input
@@ -540,19 +540,19 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
                 step="0.001"
                 value={formData.tradeSize}
                 onChange={(e) => handleInputChange('tradeSize', parseFloat(e.target.value))}
-                className="w-full px-4 py-3 sm:py-4 text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-gray-700 dark:text-white"
+                className="w-full h-12 mobile-m:h-14 px-4 mobile-m:px-5 py-3 mobile-m:py-4 text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-gray-700 dark:text-white touch-manipulation"
                 disabled={isRunning}
               />
               {errors.tradeSize && (
-                <div className="flex items-center gap-2 mt-1 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg border-l-4 border-red-400">
+                <div className="flex items-center gap-2 mt-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border-l-4 border-red-400">
                   <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
                   <p className="text-sm text-red-600 dark:text-red-400">{errors.tradeSize}</p>
                 </div>
               )}
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300">
+            <div className="space-y-3">
+              <label className="block text-sm mobile-m:text-base font-semibold text-gray-700 dark:text-gray-300">
                 Slippage Tolerance (%)
               </label>
               <input
@@ -562,11 +562,11 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
                 step="0.1"
                 value={formData.slippageTolerance}
                 onChange={(e) => handleInputChange('slippageTolerance', parseFloat(e.target.value))}
-                className="w-full px-4 py-3 sm:py-4 text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-gray-700 dark:text-white"
+                className="w-full h-12 mobile-m:h-14 px-4 mobile-m:px-5 py-3 mobile-m:py-4 text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-gray-700 dark:text-white touch-manipulation"
                 disabled={isRunning}
               />
               {errors.slippageTolerance && (
-                <div className="flex items-center gap-2 mt-1 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg border-l-4 border-red-400">
+                <div className="flex items-center gap-2 mt-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border-l-4 border-red-400">
                   <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
                   <p className="text-sm text-red-600 dark:text-red-400">{errors.slippageTolerance}</p>
                 </div>
@@ -574,37 +574,37 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
             </div>
           </div>
 
-          {/* Mobile-Optimized Mode Selection */}
-          <div className="space-y-4">
-            <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300">
+          {/* Enhanced Trading Mode Selection */}
+          <div className="space-y-5">
+            <label className="block text-sm mobile-m:text-base font-semibold text-gray-700 dark:text-gray-300 mb-1">
               Trading Mode
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mobile-m:gap-4">
               {(['boost', 'bump', 'advanced', 'trending'] as const).map((mode) => (
                 <button
                   key={mode}
                   type="button"
                   onClick={() => handleInputChange('mode', mode)}
-                  className={`relative p-4 sm:p-3 rounded-lg border-2 transition-all duration-200 ${
+                  className={`relative p-4 mobile-m:p-5 rounded-lg md:rounded-xl border-2 transition-all duration-200 min-h-[80px] mobile-m:min-h-[90px] ${
                     formData.mode === mode
-                      ? 'bg-blue-600 text-white border-blue-500 shadow-lg'
-                      : 'bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 hover:border-blue-300 dark:hover:border-blue-400'
-                  } touch-manipulation`}
+                      ? 'bg-blue-600 text-white border-blue-500 shadow-lg scale-[1.02]'
+                      : 'bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 hover:border-blue-300 dark:hover:border-blue-400 hover:scale-[1.01]'
+                  } touch-manipulation active:scale-[0.98]`}
                   disabled={isRunning}
                 >
-                  <div className="flex items-center justify-between sm:flex-col sm:text-center">
-                    <div className="text-base sm:text-sm font-medium capitalize">{mode}</div>
+                  <div className="flex items-center justify-between sm:flex-col sm:text-center h-full">
+                    <div className="text-base mobile-m:text-lg font-semibold capitalize">{mode}</div>
                     {formData.mode === mode && (
-                      <div className="w-6 h-6 sm:w-4 sm:h-4 bg-white rounded-full flex items-center justify-center ml-2 sm:ml-0 sm:mt-1">
-                        <div className="w-3 h-3 sm:w-2 sm:h-2 bg-blue-500 rounded-full"></div>
+                      <div className="w-6 h-6 mobile-m:w-7 mobile-m:h-7 bg-white rounded-full flex items-center justify-center ml-2 sm:ml-0 sm:mt-2 flex-shrink-0">
+                        <div className="w-3 h-3 mobile-m:w-3.5 mobile-m:h-3.5 bg-blue-500 rounded-full"></div>
                       </div>
                     )}
                   </div>
                 </button>
               ))}
             </div>
-            <div className="p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg sm:rounded-xl border border-blue-200 dark:border-blue-800">
-              <p className="text-sm sm:text-base text-blue-700 dark:text-blue-300 font-medium">
+            <div className="p-4 mobile-m:p-5 bg-blue-50 dark:bg-blue-900/20 rounded-lg md:rounded-xl border border-blue-200 dark:border-blue-800">
+              <p className="text-sm mobile-m:text-base text-blue-700 dark:text-blue-300 font-medium leading-relaxed">
                 {getModeDescription()}
               </p>
             </div>
@@ -883,16 +883,16 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
             </div>
           )}
 
-          {/* Mobile-Optimized Error Messages */}
+          {/* Enhanced Error Messages */}
           {(errors.wallet || errors.balance) && (
-            <div className="p-4 sm:p-6 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-lg sm:rounded-xl">
+            <div className="p-4 mobile-m:p-6 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-lg md:rounded-xl">
               <div className="flex items-start gap-3">
-                <AlertCircle className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="h-6 w-6 mobile-m:h-7 mobile-m:w-7 text-red-500 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <h4 className="font-semibold text-red-700 dark:text-red-400 text-base sm:text-lg mb-2">
+                  <h4 className="font-bold text-red-700 dark:text-red-400 text-base mobile-m:text-lg mb-3">
                     Configuration Issues
                   </h4>
-                  <ul className="space-y-2 text-sm sm:text-base text-red-600 dark:text-red-400">
+                  <ul className="space-y-2 text-sm mobile-m:text-base text-red-600 dark:text-red-400 leading-relaxed">
                     {errors.wallet && (
                       <li className="flex items-start gap-2">
                         <span className="text-red-500 mt-1">•</span>
@@ -911,23 +911,23 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
             </div>
           )}
 
-          {/* Mobile-Optimized Submit Button */}
-          <div className="pt-6 sm:pt-8">
-            <div className="sticky bottom-4 sm:bottom-0 sm:relative bg-white dark:bg-gray-800 sm:bg-transparent sm:dark:bg-transparent p-4 sm:p-0 -mx-3 sm:mx-0 rounded-t-xl sm:rounded-none border-t sm:border-t-0 border-gray-200 dark:border-gray-700">
+          {/* Enhanced Submit Button Section */}
+          <div className="pt-8">
+            <div className="sticky bottom-4 sm:bottom-0 sm:relative bg-white dark:bg-gray-800 sm:bg-transparent sm:dark:bg-transparent p-4 sm:p-0 -mx-4 sm:mx-0 rounded-t-xl sm:rounded-none border-t sm:border-t-0 border-gray-200 dark:border-gray-700">
               {!isRunning ? (
                 <button
                   type="submit"
                   disabled={isValidating || !connected}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-4 sm:py-5 px-6 rounded-xl sm:rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:shadow-none flex items-center justify-center gap-3 text-base sm:text-lg touch-manipulation transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none"
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-4 mobile-m:py-5 px-6 rounded-xl md:rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:shadow-none flex items-center justify-center gap-3 text-base mobile-m:text-lg touch-manipulation transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none min-h-[56px] mobile-m:min-h-[64px]"
                 >
                   {isValidating ? (
                     <>
-                      <div className="w-5 h-5 sm:w-6 sm:h-6 border-3 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Validating Configuration...</span>
+                      <div className="w-5 h-5 mobile-m:w-6 mobile-m:h-6 border-3 border-white border-t-transparent rounded-full animate-spin" />
+                      <span className="font-bold">Validating Configuration...</span>
                     </>
                   ) : (
                     <>
-                      <Play className="h-5 w-5 sm:h-6 sm:w-6" />
+                      <Play className="h-5 w-5 mobile-m:h-6 mobile-m:w-6" />
                       <span className="font-bold">Start Volume Bot</span>
                     </>
                   )}
@@ -936,9 +936,9 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
                 <button
                   type="button"
                   onClick={onStopBot}
-                  className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-4 sm:py-5 px-6 rounded-xl sm:rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-3 text-base sm:text-lg touch-manipulation transform hover:scale-[1.02] active:scale-[0.98]"
+                  className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-4 mobile-m:py-5 px-6 rounded-xl md:rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-3 text-base mobile-m:text-lg touch-manipulation transform hover:scale-[1.02] active:scale-[0.98] min-h-[56px] mobile-m:min-h-[64px]"
                 >
-                  <StopCircle className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <StopCircle className="h-5 w-5 mobile-m:h-6 mobile-m:w-6" />
                   <span className="font-bold">Stop Volume Bot</span>
                 </button>
               )}

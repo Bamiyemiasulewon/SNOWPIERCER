@@ -382,9 +382,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      {/* MOBILE-OPTIMIZED: Ultra-compact header */}
+      {/* MOBILE-OPTIMIZED: Expanded header for large SNOWPIERCER text */}
       <NoSSR fallback={
-        <div className="h-8 sm:h-10 md:h-12 bg-slate-900 animate-pulse" />
+        <div className="h-12 mobile-m:h-16 sm:h-20 md:h-24 lg:h-28 xl:h-32 bg-slate-900 animate-pulse" />
       }>
         <MobileHeader />
       </NoSSR>
