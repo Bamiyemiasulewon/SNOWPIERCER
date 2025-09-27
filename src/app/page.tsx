@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { Transaction, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { toast, ToastContainer } from 'react-toastify';
 import dynamic from 'next/dynamic';
 
@@ -10,7 +9,14 @@ import Form from '@/components/Form';
 import ProgressDashboard from '@/components/ProgressDashboard';
 import NoSSR from '@/components/NoSSR';
 import WalletSection from '@/components/WalletSection';
-import { getSwapQuote, testConnection, type SwapQuoteRequest } from '@/lib/api';
+import { 
+  testConnection, 
+  runVolumeBot, 
+  getBotProgress, 
+  stopBotJob,
+  type BotParams,
+  type BotProgressResponse 
+} from '@/lib/api';
 // UPDATED FOR MOBILE: Dynamic imports for better performance
 const MobileHeader = dynamic(() => import('@/components/MobileHeader'), { ssr: false });
 
@@ -38,6 +44,13 @@ interface ProgressStats {
   failedTrades: number;
   estimatedCompletion: number;
   currentStatus: 'running' | 'paused' | 'error' | 'completed';
+  // UPDATED FOR SMITHII LOGIC: Additional bot stats
+  currentJobId?: string;
+  activeBotJob?: BotProgressResponse;
+  completedMakers?: number;
+  totalMakers?: number;
+  currentBuyRatio?: number;
+  activeWallets?: number;
 }
 
 interface TradeLog {
@@ -50,11 +63,8 @@ interface TradeLog {
   error?: string;
 }
 
-const SOL_MINT = 'So11111111111111111111111111111111111111112';
-
 export default function Home() {
-  const { publicKey, signTransaction } = useWallet();
-  const { connection } = useConnection();
+  const { publicKey } = useWallet();
   
   const [isRunning, setIsRunning] = useState(false);
   const [stats, setStats] = useState<ProgressStats>({
@@ -74,8 +84,6 @@ export default function Home() {
   const [connectionQuality, setConnectionQuality] = useState<'2g' | '3g' | '4g' | 'wifi'>('wifi');
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const tradeCountRef = useRef(0);
-  const startTimeRef = useRef<number>(0);
 
   // UPDATED FOR MOBILE: Detect mobile device and orientation
   useEffect(() => {
@@ -128,183 +136,7 @@ export default function Home() {
     return () => clearTimeout(timeout);
   }, []);
 
-  const calculateDelay = (config: FormData): number => {
-    let baseDelay: number;
-    
-    switch (config.mode) {
-      case 'boost':
-        // Quick spikes: shorter delays
-        baseDelay = (config.duration * 60 * 1000) / (config.numberOfTrades * 2);
-        break;
-      case 'bump':
-        // Sustained: even distribution
-        baseDelay = (config.duration * 60 * 1000) / config.numberOfTrades;
-        break;
-      case 'advanced':
-        // Custom delays
-        const minMs = (config.customDelayMin || 5) * 1000;
-        const maxMs = (config.customDelayMax || 30) * 1000;
-        return Math.random() * (maxMs - minMs) + minMs;
-      default:
-        baseDelay = (config.duration * 60 * 1000) / config.numberOfTrades;
-    }
-    
-    // Add ±20% randomization for organic feel
-    const randomFactor = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
-    return baseDelay * randomFactor;
-  };
-
-  const executeSwap = async (
-    inputMint: string,
-    outputMint: string,
-    amount: number,
-    slippageBps: number
-  ): Promise<{ success: boolean; txHash?: string; error?: string }> => {
-    try {
-      if (!publicKey || !signTransaction) {
-        throw new Error('Wallet not connected');
-      }
-
-      // Call backend to get swap transaction using API utility
-      const quoteRequest: SwapQuoteRequest = {
-        inputMint,
-        outputMint,
-        amount: Math.floor(amount * LAMPORTS_PER_SOL),
-        slippageBps
-      };
-      
-      const response = await getSwapQuote(quoteRequest);
-
-      if (!response.success || !response.data?.swapTransaction) {
-        throw new Error(response.error || 'Failed to get swap transaction');
-      }
-
-      // Deserialize and sign transaction
-      const txBuffer = Buffer.from(response.data.swapTransaction, 'base64');
-      const transaction = Transaction.from(txBuffer);
-      
-      const signedTx = await signTransaction(transaction);
-      
-      // Broadcast transaction
-      const txHash = await connection.sendRawTransaction(signedTx.serialize(), {
-        skipPreflight: false,
-        preflightCommitment: 'confirmed'
-      });
-      
-      // Wait for confirmation with timeout
-      await Promise.race([
-        connection.confirmTransaction(txHash, 'confirmed'),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Transaction timeout')), 30000)
-        )
-      ]);
-      
-      return { success: true, txHash };
-    } catch (error: unknown) {
-      console.error('Swap execution error:', error);
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
-      };
-    }
-  };
-
-  const executeTradePair = async (config: FormData): Promise<void> => {
-    const tradeId = Date.now().toString();
-    
-    // Add pending buy log
-    const buyLog: TradeLog = {
-      id: `${tradeId}_buy`,
-      timestamp: new Date(),
-      type: 'buy',
-      amount: config.tradeSize,
-      status: 'pending'
-    };
-    
-    setTradeLogs(prev => [...prev, buyLog]);
-    
-    // Execute buy (SOL -> Token)
-    const buyResult = await executeSwap(
-      SOL_MINT,
-      config.tokenAddress,
-      config.tradeSize,
-      config.slippageTolerance * 100
-    );
-    
-    // Update buy log
-    setTradeLogs(prev => prev.map(log => 
-      log.id === buyLog.id 
-        ? { 
-            ...log, 
-            status: buyResult.success ? 'success' : 'failed',
-            txHash: buyResult.txHash,
-            error: buyResult.error
-          }
-        : log
-    ));
-    
-    if (!buyResult.success) {
-      setStats(prev => ({
-        ...prev,
-        failedTrades: prev.failedTrades + 1
-      }));
-      
-      toast.error(`Buy failed: ${buyResult.error}`);
-      return;
-    }
-    
-    // Wait a short moment before selling
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Add pending sell log
-    const sellLog: TradeLog = {
-      id: `${tradeId}_sell`,
-      timestamp: new Date(),
-      type: 'sell',
-      amount: config.tradeSize,
-      status: 'pending'
-    };
-    
-    setTradeLogs(prev => [...prev, sellLog]);
-    
-    // Execute sell (Token -> SOL)
-    const sellResult = await executeSwap(
-      config.tokenAddress,
-      SOL_MINT,
-      config.tradeSize,
-      config.slippageTolerance * 100
-    );
-    
-    // Update sell log
-    setTradeLogs(prev => prev.map(log => 
-      log.id === sellLog.id 
-        ? { 
-            ...log, 
-            status: sellResult.success ? 'success' : 'failed',
-            txHash: sellResult.txHash,
-            error: sellResult.error
-          }
-        : log
-    ));
-    
-    // Update stats
-    const bothSuccessful = buyResult.success && sellResult.success;
-    
-    setStats(prev => ({
-      ...prev,
-      tradesCompleted: prev.tradesCompleted + 1,
-      successfulTrades: bothSuccessful ? prev.successfulTrades + 1 : prev.successfulTrades,
-      failedTrades: bothSuccessful ? prev.failedTrades : prev.failedTrades + 1,
-      volumeGenerated: prev.volumeGenerated + (config.tradeSize * 2 * 100), // Rough USD estimate
-      estimatedCompletion: Math.max(0, prev.estimatedCompletion - (config.duration / config.numberOfTrades))
-    }));
-    
-    if (bothSuccessful) {
-      toast.success('Trade pair completed successfully!');
-    } else {
-      toast.error(`Trade pair failed: ${sellResult.error || 'Sell failed'}`);
-    }
-  };
+  // UPDATED FOR SMITHII LOGIC: Client-side trading functions removed - now handled by backend
 
   const startBot = async (config: FormData) => {
     if (!publicKey) {
@@ -312,63 +144,128 @@ export default function Home() {
       return;
     }
     
-    setIsRunning(true);
-    setStats({
-      tradesCompleted: 0,
-      totalTrades: config.numberOfTrades,
-      volumeGenerated: 0,
-      successfulTrades: 0,
-      failedTrades: 0,
-      estimatedCompletion: config.duration,
-      currentStatus: 'running'
-    });
-    setTradeLogs([]);
-    
-    tradeCountRef.current = 0;
-    startTimeRef.current = Date.now();
-    
-    toast.success('Volume bot started!');
-    
-    const executeTrade = async () => {
-      if (tradeCountRef.current >= config.numberOfTrades) {
-        stopBot();
-        return;
-      }
+    try {
+      // UPDATED FOR SMITHII LOGIC: Call backend API to start volume bot
+      const botParams: BotParams = {
+        user_wallet: publicKey.toString(),
+        token_mint: config.tokenAddress,
+        mode: config.mode,
+        num_makers: config.numberOfTrades, // Using numberOfTrades as makers for now
+        duration_hours: config.duration / 60, // Convert minutes to hours
+        trade_size_sol: config.tradeSize,
+        slippage_pct: config.slippageTolerance,
+        target_price_usd: config.mode === 'bump' ? 0.1 : undefined, // Mock target price
+        use_jito: config.mode === 'advanced',
+        custom_delay_min: config.customDelayMin,
+        custom_delay_max: config.customDelayMax,
+        selected_platforms: config.selectedPlatforms,
+        trending_intensity: config.trendingIntensity
+      };
       
-      try {
-        await executeTradePair(config);
-        tradeCountRef.current++;
+      const response = await runVolumeBot(botParams);
+      
+      if (response.success && response.data) {
+        const jobData = response.data;
         
-        if (tradeCountRef.current >= config.numberOfTrades) {
-          stopBot();
-        } else {
-          // Schedule next trade
-          const delay = calculateDelay(config);
-          intervalRef.current = setTimeout(executeTrade, delay);
-        }
-      } catch (error) {
-        console.error('Trade execution error:', error);
-        toast.error('Trade execution failed. Retrying...');
+        setIsRunning(true);
+        setStats({
+          tradesCompleted: 0,
+          totalTrades: config.numberOfTrades,
+          volumeGenerated: 0,
+          successfulTrades: 0,
+          failedTrades: 0,
+          estimatedCompletion: config.duration,
+          currentStatus: 'running',
+          currentJobId: jobData.job_id,
+          totalMakers: botParams.num_makers,
+          completedMakers: 0
+        });
+        setTradeLogs([]);
         
-        // Retry after a longer delay
-        intervalRef.current = setTimeout(executeTrade, 10000);
+        toast.success(`Volume bot started! Job ID: ${jobData.job_id}`);
+        
+        // Start polling for bot progress
+        startProgressPolling(jobData.job_id);
+      } else {
+        throw new Error(response.error || 'Failed to start bot');
       }
-    };
-    
-    // Start the first trade
-    const initialDelay = calculateDelay(config);
-    intervalRef.current = setTimeout(executeTrade, initialDelay);
+    } catch (error) {
+      console.error('Failed to start bot:', error);
+      toast.error(`Failed to start bot: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setIsRunning(false);
+    }
   };
 
-  const stopBot = () => {
-    if (intervalRef.current) {
-      clearTimeout(intervalRef.current);
-      intervalRef.current = null;
+  const stopBot = async () => {
+    try {
+      if (stats.currentJobId) {
+        // UPDATED FOR SMITHII LOGIC: Stop bot job via backend API
+        const response = await stopBotJob(stats.currentJobId);
+        
+        if (response.success) {
+          toast.success('Volume bot stopped successfully');
+        } else {
+          toast.warn('Bot stop request sent, but may have already completed');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to stop bot:', error);
+      toast.error('Failed to stop bot gracefully');
+    } finally {
+      // Clean up local state
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      
+      setIsRunning(false);
+      setStats(prev => ({ ...prev, currentStatus: 'completed' }));
     }
+  };
+  
+  // UPDATED FOR SMITHII LOGIC: Progress polling function
+  const startProgressPolling = (jobId: string) => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await getBotProgress(jobId);
+        
+        if (response.success && response.data) {
+          const progressData = response.data;
+          
+          // Update stats with real backend data
+          setStats(prev => ({
+            ...prev,
+            activeBotJob: progressData,
+            completedMakers: progressData.completed_makers,
+            totalMakers: progressData.total_makers,
+            currentBuyRatio: progressData.current_buy_ratio,
+            volumeGenerated: progressData.generated_volume,
+            activeWallets: progressData.active_wallets,
+            successfulTrades: progressData.transactions.successful,
+            failedTrades: progressData.transactions.failed,
+            tradesCompleted: Math.floor(progressData.progress_percentage / 100 * prev.totalTrades)
+          }));
+          
+          // Check if job is completed
+          if (progressData.status === 'completed' || progressData.status === 'failed') {
+            clearInterval(pollInterval);
+            setIsRunning(false);
+            setStats(prev => ({ ...prev, currentStatus: progressData.status === 'completed' ? 'completed' : 'error' }));
+            
+            if (progressData.status === 'completed') {
+              toast.success('Volume bot completed successfully!');
+            } else {
+              toast.error(`Bot failed: ${progressData.error_message || 'Unknown error'}`);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to get bot progress:', error);
+        // Don't stop polling on single error, backend might be temporarily unavailable
+      }
+    }, 5000); // Poll every 5 seconds
     
-    setIsRunning(false);
-    setStats(prev => ({ ...prev, currentStatus: 'completed' }));
-    toast.info('Volume bot stopped');
+    intervalRef.current = pollInterval;
   };
 
   // Cleanup on unmount

@@ -5,7 +5,7 @@ import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { toast } from 'react-toastify';
 import { Play, StopCircle, AlertCircle } from 'lucide-react';
-import { API_ENDPOINTS } from '@/lib/api';
+import { API_ENDPOINTS, checkTokenPool } from '@/lib/api';
 
 interface Platform {
   id: string;
@@ -82,6 +82,7 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
   const [solBalance, setSolBalance] = useState<number>(0);
   const [isValidating, setIsValidating] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [poolStatus, setPoolStatus] = useState<{ exists?: boolean; loading?: boolean }>({});
   
   // Trending-specific state
   const [platforms, setPlatforms] = useState<Platform[]>([]);
@@ -230,6 +231,11 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
     } else {
       try {
         new PublicKey(formData.tokenAddress);
+        
+        // UPDATED FOR SMITHII LOGIC: Check pool existence
+        if (poolStatus.exists === false) {
+          newErrors.tokenAddress = 'No Raydium pool found for this token. Volume bot requires an existing pool.';
+        }
       } catch {
         newErrors.tokenAddress = 'Invalid Solana address';
       }
@@ -305,6 +311,36 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+    
+    // UPDATED FOR SMITHII LOGIC: Auto-fetch pool and trending data when token address changes
+    if (field === 'tokenAddress' && typeof value === 'string' && value.length >= 32) {
+      fetchTokenData(value);
+    }
+  };
+  
+  const fetchTokenData = async (tokenMint: string) => {
+    try {
+      setPoolStatus({ loading: true });
+      
+      // Check pool existence
+      const poolResponse = await checkTokenPool(tokenMint);
+      if (poolResponse.success && poolResponse.data) {
+        setPoolStatus({ exists: poolResponse.data.exists, loading: false });
+        
+        if (!poolResponse.data.exists) {
+          toast.warn('⚠️ No Raydium pool found for this token');
+        } else {
+          toast.success('✅ Pool verified - ready for volume bot');
+        }
+      }
+      
+      // TODO: Fetch trending metrics if pool exists and mode is trending
+      // Will implement trending data display in future update
+      
+    } catch (error) {
+      console.error('Failed to fetch token data:', error);
+      setPoolStatus({ exists: false, loading: false });
     }
   };
 
@@ -466,14 +502,30 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
             <label className="block text-sm mobile-m:text-base font-semibold text-gray-700 dark:text-gray-300">
               Token Address (SPL Token Mint)
             </label>
-            <input
-              type="text"
-              value={formData.tokenAddress}
-              onChange={(e) => handleInputChange('tokenAddress', e.target.value)}
-              placeholder="Enter Solana token address..."
-              className="w-full h-12 mobile-m:h-14 px-4 mobile-m:px-5 py-3 mobile-m:py-4 text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 touch-manipulation"
-              disabled={isRunning}
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={formData.tokenAddress}
+                onChange={(e) => handleInputChange('tokenAddress', e.target.value)}
+                placeholder="Enter Solana token address..."
+                className="w-full h-12 mobile-m:h-14 px-4 mobile-m:px-5 py-3 mobile-m:py-4 text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 touch-manipulation pr-12"
+                disabled={isRunning}
+              />
+              {/* UPDATED FOR SMITHII LOGIC: Pool status indicator */}
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                {poolStatus.loading ? (
+                  <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                ) : poolStatus.exists === true ? (
+                  <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">✓</span>
+                  </div>
+                ) : poolStatus.exists === false ? (
+                  <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">✗</span>
+                  </div>
+                ) : null}
+              </div>
+            </div>
             {errors.tokenAddress && (
               <div className="flex items-center gap-2 mt-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border-l-4 border-red-400">
                 <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
