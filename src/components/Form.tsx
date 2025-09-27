@@ -241,8 +241,8 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
       }
     }
 
-    if (formData.numberOfTrades < 100 || formData.numberOfTrades > 10000) {
-      newErrors.numberOfTrades = 'Number of trades must be between 100 and 10,000';
+    if (formData.numberOfTrades < 10 || formData.numberOfTrades > 100) {
+      newErrors.numberOfTrades = 'Number of trades must be between 10 and 100';
     }
 
     if (formData.duration < 1 || formData.duration > 1440) { // 24 hours in minutes
@@ -542,8 +542,8 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
               </label>
               <input
                 type="number"
-                min="100"
-                max="10000"
+                min="10"
+                max="100"
                 value={formData.numberOfTrades}
                 onChange={(e) => handleInputChange('numberOfTrades', parseInt(e.target.value))}
                 className="w-full h-12 mobile-m:h-14 px-4 mobile-m:px-5 py-3 mobile-m:py-4 text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-gray-700 dark:text-white touch-manipulation"
