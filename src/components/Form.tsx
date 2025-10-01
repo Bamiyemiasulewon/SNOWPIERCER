@@ -71,7 +71,7 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
     tokenAddress: '',
     numberOfTrades: 100,
     duration: 60, // 1 hour in minutes
-    tradeSize: 0.01,
+    tradeSize: 0.025,
     slippageTolerance: 1,
     mode: 'bump',
     selectedPlatforms: [],
@@ -221,7 +221,7 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
 
     // Only check balance if we successfully fetched it and user is connected
     if (connected && solBalance === 0) {
-      newErrors.balance = 'Unable to fetch SOL balance. Please ensure you have sufficient SOL (minimum 0.1 SOL recommended)';
+      newErrors.balance = 'Unable to fetch SOL balance. Please ensure you have sufficient SOL (minimum 0.025 SOL per wallet recommended)';
     } else if (connected && solBalance > 0 && solBalance < 0.01) {
       newErrors.balance = 'Low SOL balance. Minimum 0.01 SOL required for trading';
     }
@@ -249,8 +249,8 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
       newErrors.duration = 'Duration must be between 1 and 1,440 minutes (24 hours)';
     }
 
-    if (formData.tradeSize < 0.01 || formData.tradeSize > 0.1) {
-      newErrors.tradeSize = 'Trade size must be between 0.01 and 0.1 SOL';
+    if (formData.tradeSize < 0.01 || formData.tradeSize > 0.025) {
+      newErrors.tradeSize = 'Trade size must be between 0.01 and 0.025 SOL';
     }
 
     if (formData.slippageTolerance < 0.1 || formData.slippageTolerance > 10) {
@@ -588,7 +588,7 @@ export default function Form({ onStartBot, onStopBot, isRunning }: FormProps) {
               <input
                 type="number"
                 min="0.01"
-                max="0.1"
+                max="0.025"
                 step="0.001"
                 value={formData.tradeSize}
                 onChange={(e) => handleInputChange('tradeSize', parseFloat(e.target.value))}
